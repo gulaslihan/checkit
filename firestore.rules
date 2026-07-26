@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /lists/{listId} {
+      allow read: if request.auth != null &&
+        (resource.data.ownerId == request.auth.uid ||
+         request.auth.token.email in resource.data.sharedWith);
+
+      allow create: if request.auth != null &&
+        request.resource.data.ownerId == request.auth.uid;
+
+      // Sahip her alanı değiştirebilir.
+      allow update: if request.auth != null &&
+        resource.data.ownerId == request.auth.uid;
+
+      // Paylaşılan kişiler sadece maddeleri, liste sırasını ve son
+      // değiştiren bilgisini (push bildirimlerinin kimi hariç tutacağını
+      // belirlemek için, bkz. functions/index.js) değiştirebilir.
+      allow update: if request.auth != null &&
+        request.auth.token.email in resource.data.sharedWith &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['items', 'sortIndex', 'lastModifiedBy']);
+
+      // Paylaşılan bir kişi, listeden SADECE kendi e-postasını çıkararak ayrılabilir.
+      allow update: if request.auth != null &&
+        request.auth.token.email in resource.data.sharedWith &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith']) &&
+        !(request.auth.token.email in request.resource.data.sharedWith) &&
+        request.resource.data.sharedWith.size() == resource.data.sharedWith.size() - 1;
+
+      // Bir davet alıcısı, kendisi için oluşturulmuş gerçek bir davet varsa
+      // (deterministik davet doküman kimliğiyle kanıtlanır) kendini
+      // sharedWith'e ekleyerek daveti kabul edebilir — sahibin ayrıca son
+      // bir onay vermesi gerekmiyor.
+      allow update: if request.auth != null &&
+        request.auth.token.email_verified == true &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith']) &&
+        request.auth.token.email in request.resource.data.sharedWith &&
+        !(request.auth.token.email in resource.data.sharedWith) &&
+        request.resource.data.sharedWith.size() == resource.data.sharedWith.size() + 1 &&
+        exists(/databases/$(database)/documents/invites/$(listId + '__' + request.auth.token.email));
+
+      allow delete: if request.auth != null &&
+        resource.data.ownerId == request.auth.uid;
+    }
+
+    match /invites/{inviteId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.ownerId ||
+         request.auth.token.email == resource.data.recipientEmail);
+
+      // Davet sadece o listenin gerçek sahibi tarafından, ve doküman
+      // kimliği listId+alıcı e-postasından üretilen deterministik biçimde
+      // oluşturulabilir (kabul adımında lists kuralı bu kimliği arıyor).
+      allow create: if request.auth != null &&
+        request.resource.data.ownerId == request.auth.uid &&
+        get(/databases/$(database)/documents/lists/$(request.resource.data.listId)).data.ownerId == request.auth.uid &&
+        inviteId == request.resource.data.listId + '__' + request.resource.data.recipientEmail;
+
+      allow delete: if request.auth != null &&
+        (request.auth.uid == resource.data.ownerId ||
+         request.auth.token.email == resource.data.recipientEmail);
+    }
+
+    match /connections/{connectionId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.requesterId ||
+         request.auth.token.email == resource.data.recipientEmail);
+
+      allow create: if request.auth != null &&
+        request.resource.data.requesterId == request.auth.uid;
+
+      allow update: if request.auth != null &&
+        request.auth.token.email == resource.data.recipientEmail &&
+        resource.data.status == 'pending' &&
+        request.resource.data.status == 'accepted' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      allow delete: if request.auth != null &&
+        (request.auth.uid == resource.data.requesterId ||
+         request.auth.token.email == resource.data.recipientEmail);
+    }
+
+    // Bildirim tercihleri + FCM cihaz token'ı. Sadece hesap sahibi
+    // okuyup yazabilir — Cloud Function bunu Admin SDK ile okuyacağı
+    // için bu kurallara tabi değil, bu sadece istemci erişimini kısıtlıyor.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
