@@ -35,6 +35,10 @@
 		<string>Sesli komutla liste maddesi ekleyebilmek ve arama yapabilmek için mikrofona ihtiyaç var.</string>
 		<key>NSSpeechRecognitionUsageDescription</key>
 		<string>Söylediklerinizi metne çevirebilmek için konuşma tanıma iznine ihtiyaç var.</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+		</array>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>
