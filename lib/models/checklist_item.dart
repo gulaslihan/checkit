@@ -12,6 +12,11 @@ class ChecklistItem {
   final String? note;
   final DateTime? dueDate;
 
+  /// Free-text group label (e.g. "Kahvaltılık") — items sharing the same
+  /// value render together under a collapsible section in list detail. Null
+  /// means "ungrouped".
+  final String? subheading;
+
   const ChecklistItem({
     required this.id,
     required this.text,
@@ -21,6 +26,7 @@ class ChecklistItem {
     this.rating = 0,
     this.note,
     this.dueDate,
+    this.subheading,
   });
 
   ChecklistItem copyWith({String? text, bool? isDone, String? assignedTo, int? rating}) {
@@ -33,6 +39,7 @@ class ChecklistItem {
       rating: rating ?? this.rating,
       note: note,
       dueDate: dueDate,
+      subheading: subheading,
     );
   }
 }

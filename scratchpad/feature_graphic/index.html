@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;background:#222;">
+<canvas id="c" width="1024" height="500"></canvas>
+<script>
+const ctx = document.getElementById('c').getContext('2d');
+
+// Background
+ctx.fillStyle = '#FAF7F0';
+ctx.fillRect(0, 0, 1024, 500);
+
+// Badge (rounded square, green, checkmark)
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+const badgeSize = 260;
+const badgeX = 90;
+const badgeY = (500 - badgeSize) / 2;
+ctx.fillStyle = '#3D6146';
+roundRect(badgeX, badgeY, badgeSize, badgeSize, badgeSize * 0.24);
+ctx.fill();
+
+// Checkmark
+const s = badgeSize / 108;
+ctx.strokeStyle = '#EFEDE6';
+ctx.lineWidth = 13 * s;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.beginPath();
+ctx.moveTo(badgeX + 28 * s, badgeY + 56 * s);
+ctx.lineTo(badgeX + 46 * s, badgeY + 74 * s);
+ctx.lineTo(badgeX + 82 * s, badgeY + 34 * s);
+ctx.stroke();
+
+// Wordmark
+ctx.fillStyle = '#1F2937';
+ctx.font = '700 92px Georgia, "Times New Roman", serif';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('CheckIt', 410, 250);
+
+// Tagline
+ctx.fillStyle = '#3D6146';
+ctx.font = '500 34px Arial, sans-serif';
+ctx.fillText('Create, share and reuse your lists.', 412, 305);
+</script>
+</body>
+</html>

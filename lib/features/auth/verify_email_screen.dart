@@ -2,7 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../data/auth_provider.dart';
+import '../../core/utils/error_feedback.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Blocks entry to the app until the signed-in user confirms their email —
 /// closes the loophole where someone could register with an email they
@@ -14,10 +15,32 @@ class VerifyEmailScreen extends StatefulWidget {
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
 }
 
-class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
+class _VerifyEmailScreenState extends State<VerifyEmailScreen> with WidgetsBindingObserver {
   bool _isChecking = false;
   bool _isResending = false;
   String? _info;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    // Silent — reload() lets AuthGate's userChanges() stream notice
+    // verification and swap screens on its own; don't show "henüz
+    // doğrulanmadı" just because the app came back to foreground for some
+    // unrelated reason (e.g. the user merely switched apps and back).
+    FirebaseAuth.instance.currentUser?.reload();
+  }
 
   Future<void> _checkVerified() async {
     setState(() {
@@ -28,7 +51,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     if (!mounted) return;
     setState(() => _isChecking = false);
     if (FirebaseAuth.instance.currentUser?.emailVerified != true) {
-      setState(() => _info = 'Henüz doğrulanmamış görünüyor — e-postanızdaki bağlantıya tıklayıp tekrar deneyin.');
+      setState(() => _info = AppLocalizations.of(context)!.notVerifiedYet);
     }
     // If verified, userChanges() picks it up and AuthGate swaps to the dashboard.
   }
@@ -40,9 +63,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     });
     try {
       await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-      if (mounted) setState(() => _info = 'Doğrulama e-postası tekrar gönderildi.');
+      if (mounted) setState(() => _info = AppLocalizations.of(context)!.verificationResent);
     } on FirebaseAuthException catch (e) {
-      if (mounted) setState(() => _info = authErrorMessage(e));
+      if (mounted) setState(() => _info = localizedErrorMessage(context, classifyAuthError(e)));
     } finally {
       if (mounted) setState(() => _isResending = false);
     }
@@ -50,6 +73,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
 
     return Scaffold(
@@ -62,12 +86,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               children: [
                 const Icon(Icons.mark_email_unread_rounded, size: 56, color: AppColors.primary),
                 const SizedBox(height: 20),
-                Text('E-postanızı doğrulayın', style: Theme.of(context).textTheme.headlineSmall),
+                Text(l10n.verifyEmailTitle, style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 10),
                 Text(
-                  '$email adresine bir doğrulama bağlantısı gönderdik. '
-                  'Devam edebilmeniz için o bağlantıya tıklamanız gerekiyor — bu, listelerinizi başkalarıyla '
-                  'güvenle paylaşabilmeniz için önemli.',
+                  l10n.verifyEmailBody(email),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: AppColors.textSecondary),
                 ),
@@ -86,17 +108,17 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Doğruladım, kontrol et'),
+                        : Text(l10n.checkVerifiedButton),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _isResending ? null : _resend,
-                  child: const Text('E-postayı tekrar gönder'),
+                  child: Text(l10n.resendEmailButton),
                 ),
                 TextButton(
                   onPressed: () => FirebaseAuth.instance.signOut(),
-                  child: const Text('Çıkış yap', style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(l10n.signOut, style: const TextStyle(color: AppColors.textSecondary)),
                 ),
               ],
             ),

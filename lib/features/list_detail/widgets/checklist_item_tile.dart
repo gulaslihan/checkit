@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/audio/completion_sound.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/utils/person_label.dart';
 import '../../../core/widgets/initials_avatar.dart';
 import '../../../core/widgets/star_rating.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/checklist_item.dart';
 import 'assignee_picker.dart';
 
@@ -16,6 +19,11 @@ class ChecklistItemTile extends StatelessWidget {
   final bool showRating;
   final ValueChanged<int>? onRatingChanged;
   final bool isCheckable;
+
+  /// False when this item is assigned to someone else (and you're not the
+  /// list owner) — the checkbox shows disabled instead of letting anyone
+  /// mark someone else's task done.
+  final bool canToggle;
   final bool showNote;
   final bool showDueDate;
 
@@ -40,6 +48,10 @@ class ChecklistItemTile extends StatelessWidget {
   /// Long-press on the item text opens the text/note/due-date editor.
   final VoidCallback? onEdit;
 
+  /// From the user's notification settings — off skips the completion chime
+  /// entirely (haptic feedback still fires regardless).
+  final bool soundEnabled;
+
   const ChecklistItemTile({
     super.key,
     required this.item,
@@ -48,6 +60,7 @@ class ChecklistItemTile extends StatelessWidget {
     this.showRating = false,
     this.onRatingChanged,
     this.isCheckable = true,
+    this.canToggle = true,
     this.showNote = false,
     this.showDueDate = false,
     this.dragIndex,
@@ -58,7 +71,17 @@ class ChecklistItemTile extends StatelessWidget {
     this.selected = false,
     this.onSelectedChanged,
     this.onEdit,
+    this.soundEnabled = true,
   });
+
+  /// Shared by both toggle triggers (checkbox + tapping the text) — haptic
+  /// always, plus a short chime specifically when *completing* an item (not
+  /// un-checking), so the completion moment reads as a more distinct event.
+  void _handleToggle(bool newValue) {
+    HapticFeedback.mediumImpact();
+    if (newValue && soundEnabled) playCompletionSound();
+    onToggle(newValue);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +107,6 @@ class ChecklistItemTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: item.isDone ? AppColors.success.withValues(alpha: 0.08) : AppColors.surface,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          boxShadow: AppTheme.softShadow,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,14 +119,18 @@ class ChecklistItemTile extends StatelessWidget {
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6))),
               )
             else if (isCheckable)
-              Checkbox(
-                value: item.isDone,
-                onChanged: (v) {
-                  HapticFeedback.mediumImpact();
-                  onToggle(v);
-                },
-                activeColor: AppColors.primary,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6))),
+              TweenAnimationBuilder<double>(
+                key: ValueKey(item.isDone),
+                tween: Tween(begin: 1.25, end: 1.0),
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutBack,
+                builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+                child: Checkbox(
+                  value: item.isDone,
+                  onChanged: canToggle ? (v) => _handleToggle(v ?? false) : null,
+                  activeColor: AppColors.primary,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6))),
+                ),
               )
             else
               const SizedBox(width: 12),
@@ -117,12 +143,7 @@ class ChecklistItemTile extends StatelessWidget {
                     behavior: HitTestBehavior.opaque,
                     onTap: selectionMode
                         ? () => onSelectedChanged?.call(!selected)
-                        : (isCheckable
-                            ? () {
-                                HapticFeedback.mediumImpact();
-                                onToggle(!item.isDone);
-                              }
-                            : null),
+                        : (isCheckable && canToggle ? () => _handleToggle(!item.isDone) : null),
                     onLongPress: selectionMode ? null : onEdit,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 12, bottom: 6),
@@ -151,6 +172,20 @@ class ChecklistItemTile extends StatelessWidget {
                             const SizedBox(height: 4),
                             _DueDateChip(dueDate: item.dueDate!, isDone: item.isDone),
                           ],
+                          if (collaborators.isNotEmpty && item.assignedTo != null) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.person_rounded, size: 12, color: AppColors.textSecondary),
+                                const SizedBox(width: 3),
+                                Text(
+                                  _assigneeRowLabel(context, item.assignedTo!, nicknames),
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -169,7 +204,7 @@ class ChecklistItemTile extends StatelessWidget {
             ),
             if (!selectionMode && onEdit != null)
               IconButton(
-                tooltip: 'Düzenle',
+                tooltip: AppLocalizations.of(context)!.editTooltip,
                 icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
                 onPressed: onEdit,
                 padding: EdgeInsets.zero,
@@ -214,6 +249,20 @@ class ChecklistItemTile extends StatelessWidget {
   }
 }
 
+/// The small assignee label shown under an item's text: their nickname if
+/// one's set, "Siz" for yourself, or — to avoid a full raw email cluttering
+/// every item row — just their initial (matching what the avatar already
+/// shows) when neither applies.
+String _assigneeRowLabel(BuildContext context, String email, Map<String, String> nicknames) {
+  if (personLabel(context, email) == AppLocalizations.of(context)!.you) {
+    return assigneeChipLabel(context, email, nicknames);
+  }
+  final nickname = nicknames[email];
+  if (nickname != null && nickname.isNotEmpty) return nickname;
+  final trimmed = email.trim();
+  return trimmed.isEmpty ? '?' : trimmed[0].toUpperCase();
+}
+
 class _DueDateChip extends StatelessWidget {
   final DateTime dueDate;
   final bool isDone;
@@ -235,7 +284,7 @@ class _DueDateChip extends StatelessWidget {
         children: [
           Icon(Icons.schedule_rounded, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(formatDueDate(dueDate), style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+          Text(formatDueDate(context, dueDate), style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
         ],
       ),
     );

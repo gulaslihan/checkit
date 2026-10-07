@@ -1,0 +1,805 @@
+<title>CheckIt Mesaj Envanteri</title>
+<style>
+  :root {
+    --primary: #3F6B35;
+    --primary-light: #B5DAA9;
+    --primary-dark: #2C4F27;
+    --secondary: #E06B45;
+    --background: #FAF7F0;
+    --surface: #FFFFFF;
+    --text-primary: #2A2A26;
+    --text-secondary: #7D7A6E;
+    --danger: #EF4444;
+    --danger-bg: #FDECEC;
+    --border: #E4E0D5;
+    --card-border: #2A2A26;
+    --code-bg: #F1EFE6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --primary: #8FCB7E;
+      --primary-light: #2C4F27;
+      --primary-dark: #B5DAA9;
+      --secondary: #F0916E;
+      --background: #1B1B17;
+      --surface: #242420;
+      --text-primary: #F3F1E8;
+      --text-secondary: #A8A493;
+      --danger: #F47171;
+      --danger-bg: #3A2323;
+      --border: #3A3A32;
+      --card-border: #4A4A40;
+      --code-bg: #2E2E27;
+    }
+  }
+  :root[data-theme="dark"] {
+    --primary: #8FCB7E;
+    --primary-light: #2C4F27;
+    --primary-dark: #B5DAA9;
+    --secondary: #F0916E;
+    --background: #1B1B17;
+    --surface: #242420;
+    --text-primary: #F3F1E8;
+    --text-secondary: #A8A493;
+    --danger: #F47171;
+    --danger-bg: #3A2323;
+    --border: #3A3A32;
+    --card-border: #4A4A40;
+    --code-bg: #2E2E27;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text-primary);
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  header.page {
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 6px 0 8px;
+    font-size: 30px;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--text-secondary);
+    font-size: 15px;
+    max-width: 62ch;
+    margin: 0 0 28px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 96px;
+  }
+  .stat b {
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .callout {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 40px;
+  }
+  .callout h2 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .callout p {
+    margin: 0 0 10px;
+    font-size: 14px;
+  }
+  .callout ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13.5px;
+  }
+  .callout li { margin-bottom: 6px; }
+  .callout li:last-child { margin-bottom: 0; }
+  .callout code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 12.5px;
+  }
+
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+  }
+  nav.toc h2 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+  nav.toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2;
+    column-gap: 24px;
+    counter-reset: toc;
+  }
+  nav.toc li {
+    counter-increment: toc;
+    break-inside: avoid;
+    margin-bottom: 6px;
+    font-size: 13.5px;
+  }
+  nav.toc li::before {
+    content: counter(toc, decimal-leading-zero) " ";
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    margin-right: 4px;
+  }
+  nav.toc a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  nav.toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.file {
+    margin-bottom: 34px;
+    scroll-margin-top: 20px;
+  }
+  .file-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--card-border);
+  }
+  .file-head .num {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .file-head code {
+    font-size: 14px;
+    font-weight: 700;
+    background: none;
+    padding: 0;
+  }
+
+  .msg {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 4px 16px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .msg:last-child { border-bottom: none; }
+
+  .kind {
+    align-self: start;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-align: center;
+    white-space: nowrap;
+    width: fit-content;
+    height: fit-content;
+  }
+  .kind.snackbar { background: var(--primary-light); color: var(--primary-dark); }
+  .kind.dialog { background: var(--secondary); color: #fff; }
+  .kind.inline { background: var(--code-bg); color: var(--text-secondary); }
+
+  .msg .body { min-width: 0; }
+  .text {
+    font-weight: 600;
+    font-size: 14.5px;
+    margin: 0 0 4px;
+    text-wrap: pretty;
+  }
+  .text .var {
+    color: var(--secondary);
+    font-weight: 700;
+  }
+  .trigger {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .trigger .loc {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 5px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+
+  .dialog-block {
+    background: var(--surface);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 4px;
+  }
+  .dialog-block .title-line {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .dialog-block .content-line {
+    font-size: 13.5px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .action-pill {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .action-pill.danger { border-color: var(--danger); color: var(--danger); }
+
+  table.map {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+  table.map th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 6px 10px 6px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+  table.map td {
+    padding: 8px 10px 8px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.map tr:last-child td { border-bottom: none; }
+  table.map code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+
+  footer.note {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 560px) {
+    .msg { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">CheckIt · İç Denetim</div>
+    <h1>Uyarı &amp; Bildirim Mesajları Envanteri</h1>
+    <p class="lede">
+      Uygulamadaki her SnackBar, onay diyaloğu ve satır-içi hata metninin
+      hangi olayla tetiklendiği, nerede yaşadığı ve tam metni — kod tabanının
+      tamamı taranarak çıkarıldı.
+    </p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b>13</b><span>Dosya</span></div>
+    <div class="stat"><b>~45</b><span>Mesaj</span></div>
+    <div class="stat"><b>2</b><span>Ortak Hata Sözlüğü</span></div>
+    <div class="stat"><b>2</b><span>Düzeltilen Tutarsızlık</span></div>
+  </div>
+
+  <div class="callout" style="background: var(--primary-light); border-color: var(--primary);">
+    <h2 style="color: var(--primary-dark);">✓ Taramada bulunan 2 tutarsızlık düzeltildi</h2>
+    <p>Artık her yerde ham Firebase/exception metni yerine <code>friendlyErrorMessage</code>'ın standart yedek metni kullanılıyor:</p>
+    <ul>
+      <li><code>auth_provider.dart → authErrorMessage()</code> — eşlemeyen kodlarda artık <code>"Bir şeyler ters gitti, lütfen tekrar deneyin."</code> gösteriyor.</li>
+      <li><code>app.dart</code> — oturum durumu akışı hata verirse artık aynı standart mesajı gösteriyor, ham hata nesnesi ekrana basılmıyor.</li>
+    </ul>
+  </div>
+
+  <nav class="toc">
+    <h2>Dosyalar</h2>
+    <ol>
+      <li><a href="#f1">error_feedback.dart</a></li>
+      <li><a href="#f2">auth_provider.dart</a></li>
+      <li><a href="#f3">auth_screen.dart</a></li>
+      <li><a href="#f4">verify_email_screen.dart</a></li>
+      <li><a href="#f5">account_deletion.dart</a></li>
+      <li><a href="#f6">profile_screen.dart</a></li>
+      <li><a href="#f7">create_list_screen.dart</a></li>
+      <li><a href="#f8">dashboard_screen.dart</a></li>
+      <li><a href="#f9">edit_list_sheet.dart</a></li>
+      <li><a href="#f10">list_detail_screen.dart</a></li>
+      <li><a href="#f11">share_screen.dart</a></li>
+      <li><a href="#f12">connections_screen.dart</a></li>
+      <li><a href="#f13">app.dart</a></li>
+    </ol>
+  </nav>
+
+  <section class="file" id="f1">
+    <div class="file-head"><span class="num">01</span><code>core/utils/error_feedback.dart</code></div>
+    <p class="trigger" style="margin-bottom:10px">Uygulama genelinde <code>runGuarded()</code> ile sarmalanan her Firestore
+      yazma işlemi başarısız olduğunda gösterilen ortak yedek mesajlar.</p>
+    <table class="map">
+      <tr><th>Metin</th><th>Ne zaman</th></tr>
+      <tr><td>Bu işlem için yetkiniz yok.</td><td><code>permission-denied</code></td></tr>
+      <tr><td>Bağlantı sorunu — internetinizi kontrol edip tekrar deneyin.</td><td><code>unavailable</code></td></tr>
+      <tr><td>Aradığınız kayıt bulunamadı.</td><td><code>not-found</code></td></tr>
+      <tr><td>Bir şeyler ters gitti, lütfen tekrar deneyin.</td><td>Eşlemeyen diğer tüm hatalar</td></tr>
+    </table>
+  </section>
+
+  <section class="file" id="f2">
+    <div class="file-head"><span class="num">02</span><code>data/auth_provider.dart</code></div>
+    <p class="trigger" style="margin-bottom:10px">Giriş/kayıt/şifre işlemlerinde Firebase Auth hata koduna göre gösterilen mesajlar.</p>
+    <table class="map">
+      <tr><th>Metin</th><th>Hata kodu</th></tr>
+      <tr><td>E-posta adresi geçersiz görünüyor.</td><td><code>invalid-email</code></td></tr>
+      <tr><td>Bu hesap devre dışı bırakılmış.</td><td><code>user-disabled</code></td></tr>
+      <tr><td>Bu e-posta ile kayıtlı bir hesap bulunamadı.</td><td><code>user-not-found</code></td></tr>
+      <tr><td>E-posta veya şifre hatalı.</td><td><code>wrong-password</code>, <code>invalid-credential</code></td></tr>
+      <tr><td>Bu e-posta zaten kullanımda, giriş yapmayı deneyin.</td><td><code>email-already-in-use</code></td></tr>
+      <tr><td>Şifre en az 6 karakter olmalı.</td><td><code>weak-password</code></td></tr>
+      <tr><td>Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.</td><td><code>too-many-requests</code></td></tr>
+      <tr><td>E-posta/şifre girişi Firebase Console'da henüz açılmamış.</td><td><code>operation-not-allowed</code></td></tr>
+      <tr><td>Bir şeyler ters gitti, lütfen tekrar deneyin.</td><td>Eşlemeyen diğer kodlar</td></tr>
+    </table>
+  </section>
+
+  <section class="file" id="f3">
+    <div class="file-head"><span class="num">03</span><code>features/auth/auth_screen.dart</code></div>
+
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">Şifre sıfırlama bağlantısı gönderebilmemiz için önce e-postanızı yazın.</p>
+        <p class="trigger">E-posta alanı boşken "Şifremi unuttum" dokunulduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text"><span class="var">$email</span> adresine şifre sıfırlama bağlantısı gönderildi.</p>
+        <p class="trigger">Sıfırlama e-postası başarıyla gönderildiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">(authErrorMessage sonucu)</p>
+        <p class="trigger">Şifre sıfırlama isteği hata verdiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">E-posta ve şifre gerekli.</p>
+        <p class="trigger">Giriş/Kayıt formu boş alanla gönderildiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">Devam etmek için Gizlilik Politikası ve Kullanım Şartları'nı kabul etmelisiniz.</p>
+        <p class="trigger">Kayıt olurken sözleşme kutusu işaretlenmeden gönderildiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">(authErrorMessage sonucu)</p>
+        <p class="trigger">Giriş/kayıt Firebase hatası döndürdüğünde</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f4">
+    <div class="file-head"><span class="num">04</span><code>features/auth/verify_email_screen.dart</code></div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">Henüz doğrulanmamış görünüyor — e-postanızdaki bağlantıya tıklayıp tekrar deneyin.</p>
+        <p class="trigger">E-posta hâlâ doğrulanmamışken "Doğruladım, kontrol et" dokunulduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">Doğrulama e-postası tekrar gönderildi.</p>
+        <p class="trigger">"E-postayı tekrar gönder" başarılı olduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Satır içi</span>
+      <div class="body">
+        <p class="text">(authErrorMessage sonucu)</p>
+        <p class="trigger">Yeniden gönderme isteği hata verdiğinde</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f5">
+    <div class="file-head"><span class="num">05</span><code>data/account_deletion.dart</code></div>
+    <div class="msg">
+      <span class="kind inline">Değer</span>
+      <div class="body">
+        <p class="text">Oturum bulunamadı.</p>
+        <p class="trigger">Şifre ile yeniden doğrulama, oturum yokken çağrıldığında</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Değer</span>
+      <div class="body">
+        <p class="text">(authErrorMessage sonucu)</p>
+        <p class="trigger">Hesap silme, "yakın zamanda giriş" dışında bir Auth hatasıyla başarısız olduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind inline">Değer</span>
+      <div class="body">
+        <p class="text">(friendlyErrorMessage sonucu)</p>
+        <p class="trigger">Sahip olunan Firestore verisi silinirken hata oluştuğunda</p>
+      </div>
+    </div>
+    <p class="trigger" style="margin-top:8px"><em>Not: <code>requires-recent-login</code> kodu doğrudan mesaj üretmiyor —
+      <code>needsReauth</code> bayrağını tetikleyip profil ekranındaki şifre-yeniden-girme diyaloğunu açıyor.</em></p>
+  </section>
+
+  <section class="file" id="f6">
+    <div class="file-head"><span class="num">06</span><code>features/profile/profile_screen.dart</code></div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Hesabınızı silmek istediğinize emin misiniz?</div>
+          <div class="content-line">Bu işlem geri alınamaz. Sahibi olduğunuz tüm listeler ve ilişkili tüm verileriniz kalıcı olarak silinecek, hesabınız kapatılacaktır.</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill danger">Hesabımı Sil</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">"Hesabımı Sil" butonuna dokunulduğunda</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Devam etmek için şifrenizi girin</div>
+          <div class="content-line">(Şifre giriş alanı)</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill">Onayla</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Hesap silme, Firebase'in yakın-zamanlı-giriş şartı yüzünden yeniden doğrulama istediğinde</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Bir sorun oluştu: <span class="var">(hata metni)</span></p>
+        <p class="trigger">Hesap silme işlemi hata döndürdüğünde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">(hata metni)</p>
+        <p class="trigger">Şifre ile yeniden doğrulama + silme başarısız olduğunda</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f7">
+    <div class="file-head"><span class="num">07</span><code>features/create_list/create_list_screen.dart</code></div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Lütfen bir liste adı girin</p>
+        <p class="trigger">Liste adı boşken "Listeyi Oluştur" dokunulduğunda</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f8">
+    <div class="file-head"><span class="num">08</span><code>features/dashboard/dashboard_screen.dart</code></div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Çıkmak için tekrar geri tuşuna basın</p>
+        <p class="trigger">Geri tuşuna ilk kez basıldığında (2 saniye görünür, çift-basış-çıkış deseni)</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f9">
+    <div class="file-head"><span class="num">09</span><code>features/dashboard/widgets/edit_list_sheet.dart</code></div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Listeyi sil</div>
+          <div class="content-line">"…" listesi kalıcı olarak silinecek. Emin misiniz?</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill danger">Sil</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Liste sahibi "Sil" dokunduğunda</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Listeden ayrıl</div>
+          <div class="content-line">"…" listesinden ayrılacaksınız ve bir daha erişemeyeceksiniz. Emin misiniz?</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill danger">Ayrıl</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Sahibi olmayan bir kişi "Ayrıl" dokunduğunda</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">"…" kopyalandı</p>
+        <p class="trigger">"Listeyi Kopyala" başarılı olduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">"…" arşivden çıkarıldı / "…" arşivlendi</p>
+        <p class="trigger">Arşivle/arşivden çıkar geçişi başarılı olduğunda (metin önceki duruma göre değişir)</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f10">
+    <div class="file-head"><span class="num">10</span><code>features/list_detail/list_detail_screen.dart</code></div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Yeni Liste Adı</div>
+          <div class="content-line">(Metin girişi, maks. 80 karakter)</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill">Oluştur</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Seçim modunda "Yeni Liste Oluştur" seçildiğinde</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Alt Başlığı Yeniden Adlandır</div>
+          <div class="content-line">(Metin girişi, maks. 40 karakter)</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill">Kaydet</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Alt başlık menüsünden "Yeniden Adlandır" seçildiğinde</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Liste tamamlandı 🎉</div>
+          <div class="content-line">Listedeki tüm maddeler tamamlandı. Liste sahibi listeyi sıfırlayıp yeniden kullanıma hazırlayabilir, arşive kaldırabilir ya da silebilir.</div>
+          <div class="actions"><span class="action-pill">Tamam</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Sahibi olmayan bir kişi paylaşımlı listedeki son maddeyi işaretlediğinde</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">Liste tamamlandı 🎉</div>
+          <div class="content-line">"…" listesindeki tüm maddeler tamamlandı. Ne yapmak istersiniz?</div>
+          <div class="actions"><span class="action-pill">Böyle kalsın</span><span class="action-pill">Sıfırla</span><span class="action-pill">Arşivle</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Liste sahibi son maddeyi işaretlediğinde</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">"…" oluşturuldu (N madde)</p>
+        <p class="trigger">Seçili maddelerden yeni liste başarıyla oluşturulduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Taşınacak/kopyalanacak başka bir listeniz yok.</p>
+        <p class="trigger">Taşıma/kopyalama için hedef olacak başka bir liste yokken denendiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">N madde "…" listesine taşındı / kopyalandı</p>
+        <p class="trigger">Seçili maddeler başka bir listeye taşındığında/kopyalandığında</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">"…" arşivlendi</p>
+        <p class="trigger">Tamamlanma diyaloğunda sahip "Arşivle" seçtiğinde</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">"…" silindi <span style="font-weight:600">(Geri Al butonlu)</span></p>
+        <p class="trigger">Bir madde kaydırılarak silindiğinde</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f11">
+    <div class="file-head"><span class="num">11</span><code>features/sharing/share_screen.dart</code></div>
+
+    <div class="msg">
+      <span class="kind dialog">Diyalog</span>
+      <div class="body">
+        <div class="dialog-block">
+          <div class="title-line">… için takma ad</div>
+          <div class="content-line">(Metin girişi, maks. 40 karakter, ipucu: "ör. Halası")</div>
+          <div class="actions"><span class="action-pill">Vazgeç</span><span class="action-pill">Kaydet</span></div>
+        </div>
+        <p class="trigger" style="margin-top:8px">Bir kişinin adının yanındaki kalem ikonuna dokunulduğunda</p>
+      </div>
+    </div>
+
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Geçerli bir e-posta girin.</p>
+        <p class="trigger">"Davet Et" boş/geçersiz (@ içermeyen) e-postayla dokunulduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Bu kişiye zaten davet gönderilmiş.</p>
+        <p class="trigger">Zaten bekleyen bir davetin olduğu e-postaya tekrar davet gönderilmeye çalışıldığında</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Kendinizi davet edemezsiniz. <span style="font-weight:400">/ (genel hata metni)</span></p>
+        <p class="trigger">Davet gönderme başarısız olduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Davet gönderildi — … kabul edince size haber gelecek.</p>
+        <p class="trigger">Davet başarıyla gönderildiğinde</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f12">
+    <div class="file-head"><span class="num">12</span><code>features/connections/connections_screen.dart</code></div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Geçerli bir e-posta girin.</p>
+        <p class="trigger">"Gönder" boş/geçersiz e-postayla dokunulduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Kendinizi ekleyemezsiniz. / Bu kişiye zaten bir bağlantı isteği gönderilmiş. <span style="font-weight:400">/ (genel hata metni)</span></p>
+        <p class="trigger">Bağlantı isteği gönderme başarısız olduğunda</p>
+      </div>
+    </div>
+    <div class="msg">
+      <span class="kind snackbar">SnackBar</span>
+      <div class="body">
+        <p class="text">Bağlantı isteği gönderildi — …</p>
+        <p class="trigger">İstek başarıyla gönderildiğinde</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="file" id="f13">
+    <div class="file-head"><span class="num">13</span><code>app.dart</code></div>
+    <div class="msg">
+      <span class="kind inline">Tam ekran</span>
+      <div class="body">
+        <p class="text">Bir şeyler ters gitti, lütfen tekrar deneyin.</p>
+        <p class="trigger">Oturum durumu akışı beklenmedik bir hata verdiğinde (nadir)</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="note">
+    Statik boş-durum metinleri (ör. "Henüz listeniz yok") bu envanterin dışında —
+    bunlar bir olaya tepki değil, kalıcı ekran metinleri. Tarama <code>lib/</code> altındaki
+    tüm dosyaları kapsadı; <code>SnackBar</code>, <code>AlertDialog</code> ve satır-içi hata
+    metni içermeyen dosyalar (madde düzenleyici, sesli giriş, bildirim ayarları, arşiv,
+    bekleyen maddeler ekranları vb.) listeye dahil edilmedi.
+  </footer>
+</div>

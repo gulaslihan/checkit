@@ -60,3 +60,6 @@ functions/node_modules/
 
 # Per-developer local tool permissions, not shared project config
 .claude/settings.local.json
+
+# Account recovery codes / third-party credentials docs — never commit
+twilio-sendgrid/

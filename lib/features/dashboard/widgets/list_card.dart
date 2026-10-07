@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/person_label.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/checklist.dart';
-import '../../../models/checklist_type.dart';
 import 'category_icon.dart';
 
 class ListCard extends StatelessWidget {
@@ -15,14 +16,13 @@ class ListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPermanent = checklist.type == ChecklistType.permanent;
     final progress = checklist.totalCount == 0 ? 0.0 : checklist.completedCount / checklist.totalCount;
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Material(
         color: Colors.transparent,
@@ -39,10 +39,10 @@ class ListCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
-                  child: Icon(categoryIcon(checklist.category), color: Colors.white, size: 26),
+                  child: Icon(categoryIcon(checklist.category), color: AppColors.primary, size: 26),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -57,28 +57,32 @@ class ListCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          _TypeBadge(isPermanent: isPermanent),
+                          Flexible(child: _OwnerLabel(checklist: checklist)),
                           if (checklist.isShared) ...[
                             const SizedBox(width: 6),
                             const Icon(Icons.people_alt_rounded, size: 14, color: AppColors.textSecondary),
                           ],
                           const Spacer(),
                           Text(
-                            '${checklist.completedCount}/${checklist.totalCount}',
+                            checklist.isCheckable
+                                ? '${checklist.completedCount}/${checklist.totalCount}'
+                                : AppLocalizations.of(context)!.itemCount(checklist.totalCount),
                             style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 6,
-                          backgroundColor: AppColors.background,
-                          valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                      if (checklist.isCheckable) ...[
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            backgroundColor: AppColors.background,
+                            valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -98,23 +102,17 @@ class ListCard extends StatelessWidget {
   }
 }
 
-class _TypeBadge extends StatelessWidget {
-  final bool isPermanent;
-  const _TypeBadge({required this.isPermanent});
+class _OwnerLabel extends StatelessWidget {
+  final Checklist checklist;
+  const _OwnerLabel({required this.checklist});
 
   @override
   Widget build(BuildContext context) {
-    final color = isPermanent ? AppColors.primary : AppColors.secondary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-      ),
-      child: Text(
-        isPermanent ? 'Kalıcı' : 'Geçici',
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
-      ),
+    final owner = listPersonLabel(context, checklist, checklist.ownerEmail ?? '');
+    return Text(
+      AppLocalizations.of(context)!.ownerPrefix(owner),
+      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

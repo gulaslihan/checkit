@@ -25,11 +25,17 @@ class NotificationSummary {
   final List<AssignedTask> assignedTasks;
   final Set<String> seenIds;
 
+  /// True until every underlying stream (invites, connections, lists) has
+  /// delivered its first snapshot — screens should show a loading state
+  /// instead of "Bekleyen bir şeyiniz yok" while this is true.
+  final bool isLoading;
+
   const NotificationSummary({
     required this.newInvites,
     required this.connectionRequests,
     required this.assignedTasks,
     required this.seenIds,
+    required this.isLoading,
   });
 
   static String inviteKey(Invite i) => 'invite:${i.id}';
@@ -53,19 +59,26 @@ class NotificationSummary {
 
 final notificationSummaryProvider = Provider<NotificationSummary>((ref) {
   final myEmail = ref.watch(authStateProvider).value?.email ?? '';
-  final incoming = ref.watch(myInvitesProvider).value ?? const [];
-  final connections = ref.watch(myConnectionsProvider).value ?? const [];
+  final incomingAsync = ref.watch(myInvitesProvider);
+  final connectionsAsync = ref.watch(myConnectionsProvider);
+  final incoming = incomingAsync.value ?? const [];
+  final connections = connectionsAsync.value ?? const [];
   final lists = ref.watch(listsProvider);
+  final listsLoading = ref.watch(listsLoadingProvider);
   final seenIds = ref.watch(seenNotificationsProvider);
 
+  final assignedTasks = [
+    for (final list in lists)
+      for (final item in list.items)
+        if (!item.isDone && item.assignedTo == myEmail) AssignedTask(list, item),
+  ]..sort((a, b) => b.item.createdAt.compareTo(a.item.createdAt));
+
   return NotificationSummary(
-    newInvites: incoming,
-    connectionRequests: connections.where((c) => !c.accepted && c.recipientEmail == myEmail).toList(),
-    assignedTasks: [
-      for (final list in lists)
-        for (final item in list.items)
-          if (!item.isDone && item.assignedTo == myEmail) AssignedTask(list, item),
-    ],
+    newInvites: [...incoming]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+    connectionRequests: connections.where((c) => !c.accepted && c.recipientEmail == myEmail).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+    assignedTasks: assignedTasks,
     seenIds: seenIds,
+    isLoading: incomingAsync.isLoading || connectionsAsync.isLoading || listsLoading,
   );
 });

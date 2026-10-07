@@ -35,7 +35,7 @@ class CategorySelector extends StatelessWidget {
                 Icon(categoryIcon(category), size: 18, color: selected ? Colors.white : AppColors.textSecondary),
                 const SizedBox(width: 6),
                 Text(
-                  category,
+                  categoryDisplayName(context, category),
                   style: TextStyle(color: selected ? Colors.white : AppColors.textPrimary, fontWeight: FontWeight.w500),
                 ),
               ],

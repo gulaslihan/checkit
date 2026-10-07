@@ -27,9 +27,13 @@ class DefaultFirebaseOptions {
     storageBucket: 'checkit-bb0e7.firebasestorage.app',
   );
 
+  // Re-registered 20 Eylül 2026 under com.velanalytics.checkit —
+  // com.checkit.checkit was already taken by another developer on Play
+  // Store. The old app registration (appId ending 551621) is left in place
+  // in Firebase Console, just unused now.
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDgKcZdSYCCUD_nO3LurMwBJ3RZPk_o5zA',
-    appId: '1:675044482932:android:f28a887aa9efedfc551621',
+    appId: '1:675044482932:android:08d3d9d8587cf7e3551621',
     messagingSenderId: '675044482932',
     projectId: 'checkit-bb0e7',
     storageBucket: 'checkit-bb0e7.firebasestorage.app',

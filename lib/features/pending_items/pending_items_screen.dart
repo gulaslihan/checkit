@@ -8,6 +8,7 @@ import '../../core/utils/person_label.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../../data/lists_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
 import '../../models/checklist_item.dart';
 import '../list_detail/list_detail_screen.dart';
@@ -32,13 +33,16 @@ class _PendingItemsScreenState extends ConsumerState<PendingItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final lists = ref.watch(listsProvider);
+    final listsLoading = ref.watch(listsLoadingProvider);
     final myEmail = FirebaseAuth.instance.currentUser?.email;
 
     final entries = <_PendingEntry>[
       for (final list in lists)
-        for (final item in list.items)
-          if (!item.isDone && item.assignedTo != null) _PendingEntry(list, item),
+        if (!list.archived)
+          for (final item in list.items)
+            if (!item.isDone && item.assignedTo != null) _PendingEntry(list, item),
     ];
 
     final filtered = entries.where((e) {
@@ -47,7 +51,7 @@ class _PendingItemsScreenState extends ConsumerState<PendingItemsScreen> {
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bekleyen Maddeler'), actions: const [HomeButton()]),
+      appBar: AppBar(title: Text(l10n.pendingItemsTitle), actions: const [HomeButton()]),
       body: Column(
         children: [
           Padding(
@@ -56,7 +60,7 @@ class _PendingItemsScreenState extends ConsumerState<PendingItemsScreen> {
               children: [
                 Expanded(
                   child: _FilterTab(
-                    label: 'Bende',
+                    label: l10n.filterMine,
                     selected: _filter == _PendingFilter.mine,
                     onTap: () => setState(() => _filter = _PendingFilter.mine),
                   ),
@@ -64,7 +68,7 @@ class _PendingItemsScreenState extends ConsumerState<PendingItemsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _FilterTab(
-                    label: 'Başkalarında',
+                    label: l10n.filterOthers,
                     selected: _filter == _PendingFilter.others,
                     onTap: () => setState(() => _filter = _PendingFilter.others),
                   ),
@@ -73,7 +77,9 @@ class _PendingItemsScreenState extends ConsumerState<PendingItemsScreen> {
             ),
           ),
           Expanded(
-            child: filtered.isEmpty
+            child: listsLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : filtered.isEmpty
                 ? const _EmptyPending()
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -102,7 +108,7 @@ class _PendingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: ListTile(
         onTap: () {
@@ -112,7 +118,10 @@ class _PendingCard extends StatelessWidget {
         },
         leading: InitialsAvatar(name: entry.item.assignedTo!),
         title: Text(entry.item.text, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text('${entry.list.title} · ${personLabel(entry.item.assignedTo!)}'),
+        subtitle: Text(AppLocalizations.of(context)!.pendingItemSubtitle(
+          entry.list.title,
+          personLabel(context, entry.item.assignedTo!),
+        )),
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
       ),
     );
@@ -153,15 +162,15 @@ class _EmptyPending extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.task_alt_rounded, size: 56, color: AppColors.textSecondary),
-            SizedBox(height: 16),
-            Text('Bekleyen madde yok', style: TextStyle(color: AppColors.textSecondary)),
+            const Icon(Icons.task_alt_rounded, size: 56, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context)!.noPendingItemsMessage, style: const TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       ),

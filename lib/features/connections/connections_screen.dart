@@ -8,6 +8,7 @@ import '../../core/utils/error_feedback.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../../data/connections_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 class ConnectionsScreen extends ConsumerStatefulWidget {
   const ConnectionsScreen({super.key});
@@ -27,36 +28,67 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
   }
 
   Future<void> _send() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _controller.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Geçerli bir e-posta girin.')),
+        SnackBar(content: Text(l10n.emailInvalid)),
       );
       return;
     }
     setState(() => _isSending = true);
-    String? error;
+    AppErrorKind? errorKind;
     try {
-      error = await ref.read(connectionsNotifierProvider).sendRequest(email);
+      errorKind = await ref.read(connectionsNotifierProvider).sendRequest(email);
     } catch (e) {
-      error = friendlyErrorMessage(e);
+      errorKind = classifyError(e);
     }
     if (!mounted) return;
     setState(() => _isSending = false);
-    if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    if (errorKind != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizedErrorMessage(context, errorKind))));
     } else {
       _controller.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bağlantı isteği gönderildi — $email')),
+        SnackBar(content: Text(l10n.connectionRequestSent(email))),
       );
+    }
+  }
+
+  /// Only for accepted connections — an accidental tap here silently drops a
+  /// real, established relationship (unlike cancelling a still-pending
+  /// request), so it gets the same confirm-dialog treatment as deleting or
+  /// leaving a list.
+  Future<void> _confirmRemove(String connectionId, String email) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.removeConnectionTitle),
+        content: Text(l10n.removeConnectionConfirm(email)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.removeConnectionAction, style: const TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await runGuarded(context, () => ref.read(connectionsNotifierProvider).remove(connectionId));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final myEmail = FirebaseAuth.instance.currentUser?.email ?? '';
-    final connections = ref.watch(myConnectionsProvider).value ?? const [];
+    final connectionsAsync = ref.watch(myConnectionsProvider);
+    final connections = connectionsAsync.value ?? const [];
     final notifier = ref.read(connectionsNotifierProvider);
 
     final myUid = FirebaseAuth.instance.currentUser?.uid;
@@ -65,7 +97,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
     final accepted = connections.where((c) => c.accepted).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bağlantılarım'), actions: const [HomeButton()]),
+      appBar: AppBar(title: Text(l10n.connectionsScreenTitle), actions: const [HomeButton()]),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -75,21 +107,21 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
               color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
-                SizedBox(width: 10),
+                const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Bir kere bağlantı kurunca, o kişiyi her seferinde e-posta yazmadan istediğiniz listeye ekleyebilirsiniz.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    l10n.connectionsInfoBanner,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          const Text('Bağlantı Ekle', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(l10n.addConnectionLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +130,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                 child: TextField(
                   controller: _controller,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: 'ornek@eposta.com'),
+                  decoration: InputDecoration(hintText: l10n.emailHint),
                   onSubmitted: (_) => _send(),
                 ),
               ),
@@ -111,13 +143,13 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Gönder'),
+                    : Text(l10n.sendButton),
               ),
             ],
           ),
           if (incoming.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Text('Gelen İstekler', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.incomingRequestsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             for (final c in incoming)
               _ConnectionRow(
@@ -126,12 +158,12 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: 'Reddet',
+                      tooltip: l10n.rejectTooltip,
                       icon: const Icon(Icons.close_rounded, color: AppColors.danger),
                       onPressed: () => runGuarded(context, () => notifier.remove(c.id)),
                     ),
                     IconButton(
-                      tooltip: 'Kabul Et',
+                      tooltip: l10n.acceptTooltip,
                       icon: const Icon(Icons.check_circle_rounded, color: AppColors.success),
                       onPressed: () => runGuarded(context, () => notifier.accept(c.id)),
                     ),
@@ -141,32 +173,41 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
           ],
           if (sentPending.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Text('Gönderilen İstekler', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.sentRequestsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             for (final c in sentPending)
               _ConnectionRow(
                 email: c.recipientEmail,
-                subtitle: 'Kabul bekleniyor',
+                subtitle: l10n.pendingAcceptance,
                 trailing: IconButton(
-                  tooltip: 'İptal Et',
+                  tooltip: l10n.cancelTooltip,
                   icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                   onPressed: () => notifier.remove(c.id),
                 ),
               ),
           ],
           const SizedBox(height: 24),
-          Text('Bağlantılarınız (${accepted.length})', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(l10n.yourConnectionsLabel(accepted.length), style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
-          if (accepted.isEmpty)
-            const Text('Henüz bağlantınız yok.', style: TextStyle(color: AppColors.textSecondary))
+          if (connectionsAsync.isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              ),
+            )
+          else if (accepted.isEmpty)
+            Text(l10n.noConnectionsYet, style: const TextStyle(color: AppColors.textSecondary))
           else
             for (final c in accepted)
               _ConnectionRow(
                 email: c.otherEmail(myEmail),
                 trailing: IconButton(
-                  tooltip: 'Bağlantıyı kaldır',
+                  tooltip: l10n.removeConnectionTooltip,
                   icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-                  onPressed: () => notifier.remove(c.id),
+                  onPressed: () => _confirmRemove(c.id, c.otherEmail(myEmail)),
                 ),
               ),
         ],
@@ -189,7 +230,7 @@ class _ConnectionRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: ListTile(
         leading: InitialsAvatar(name: email),

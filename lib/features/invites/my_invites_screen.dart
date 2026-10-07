@@ -11,6 +11,7 @@ import '../../data/connections_provider.dart';
 import '../../data/invites_provider.dart';
 import '../../data/notifications_provider.dart';
 import '../../data/seen_notifications_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/connection.dart';
 import '../../models/invite.dart';
 import '../list_detail/list_detail_screen.dart';
@@ -25,6 +26,7 @@ class MyInvitesScreen extends ConsumerStatefulWidget {
 class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final summary = ref.watch(notificationSummaryProvider);
 
     // Mark everything currently shown as "seen" so the dashboard badge
@@ -36,28 +38,50 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Davetlerim'), actions: const [HomeButton()]),
-      body: summary.isEmpty
+      appBar: AppBar(title: Text(l10n.myInvitesTitle), actions: const [HomeButton()]),
+      body: summary.isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : summary.isEmpty
           ? const _EmptyInvites()
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                if (summary.assignedTasks.isNotEmpty) ...[
-                  const Text('Size Atanan Görevler', style: TextStyle(fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.invitesScreenInfoBanner,
+                          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (summary.newInvites.isNotEmpty) ...[
+                  Text(l10n.newInvitesLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 10),
-                  for (final task in summary.assignedTasks) _AssignedTaskCard(task: task),
+                  for (final invite in summary.newInvites) _PendingInviteCard(invite: invite),
                   const SizedBox(height: 24),
                 ],
                 if (summary.connectionRequests.isNotEmpty) ...[
-                  const Text('Bağlantı İstekleri', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text(l10n.connectionRequestsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 10),
                   for (final c in summary.connectionRequests) _ConnectionRequestCard(connection: c),
                   const SizedBox(height: 24),
                 ],
-                if (summary.newInvites.isNotEmpty) ...[
-                  const Text('Yeni Davetler', style: TextStyle(fontWeight: FontWeight.w600)),
+                if (summary.assignedTasks.isNotEmpty) ...[
+                  Text(l10n.assignedTasksLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 10),
-                  for (final invite in summary.newInvites) _PendingInviteCard(invite: invite),
+                  for (final task in summary.assignedTasks) _AssignedTaskCard(task: task),
                 ],
               ],
             ),
@@ -77,7 +101,7 @@ class _AssignedTaskCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: ListTile(
         onTap: () {
@@ -90,7 +114,7 @@ class _AssignedTaskCard extends StatelessWidget {
           child: Icon(Icons.assignment_ind_rounded, color: AppColors.primary),
         ),
         title: Text(task.item.text, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text('${task.list.title} listesinde size atandı'),
+        subtitle: Text(AppLocalizations.of(context)!.assignedInListSubtitle(task.list.title)),
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
       ),
     );
@@ -117,6 +141,7 @@ class _ConnectionRequestCardState extends ConsumerState<_ConnectionRequestCard> 
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final notifier = ref.read(connectionsNotifierProvider);
 
     return Container(
@@ -125,7 +150,7 @@ class _ConnectionRequestCardState extends ConsumerState<_ConnectionRequestCard> 
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Row(
         children: [
@@ -136,7 +161,7 @@ class _ConnectionRequestCardState extends ConsumerState<_ConnectionRequestCard> 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.connection.requesterEmail, style: const TextStyle(fontWeight: FontWeight.w600)),
-                const Text('Bağlantı kurmak istiyor', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(l10n.wantsToConnect, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -147,12 +172,12 @@ class _ConnectionRequestCardState extends ConsumerState<_ConnectionRequestCard> 
             )
           else ...[
             IconButton(
-              tooltip: 'Reddet',
+              tooltip: l10n.rejectTooltip,
               icon: const Icon(Icons.close_rounded, color: AppColors.danger),
               onPressed: () => _run(() => notifier.remove(widget.connection.id)),
             ),
             IconButton(
-              tooltip: 'Kabul Et',
+              tooltip: l10n.acceptTooltip,
               icon: const Icon(Icons.check_circle_rounded, color: AppColors.success),
               onPressed: () => _run(() => notifier.accept(widget.connection.id)),
             ),
@@ -183,6 +208,7 @@ class _PendingInviteCardState extends ConsumerState<_PendingInviteCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final notifier = ref.read(invitesNotifierProvider);
 
     return Container(
@@ -191,7 +217,7 @@ class _PendingInviteCardState extends ConsumerState<_PendingInviteCard> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Row(
         children: [
@@ -203,7 +229,7 @@ class _PendingInviteCardState extends ConsumerState<_PendingInviteCard> {
               children: [
                 Text(widget.invite.listTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
                 Text(
-                  '${widget.invite.ownerEmail} sizi davet etti',
+                  l10n.invitedYouToList(widget.invite.ownerEmail),
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
@@ -216,12 +242,12 @@ class _PendingInviteCardState extends ConsumerState<_PendingInviteCard> {
             )
           else ...[
             IconButton(
-              tooltip: 'Reddet',
+              tooltip: l10n.rejectTooltip,
               icon: const Icon(Icons.close_rounded, color: AppColors.danger),
               onPressed: () => _run(() => notifier.deleteInvite(widget.invite.id)),
             ),
             IconButton(
-              tooltip: 'Kabul Et',
+              tooltip: l10n.acceptTooltip,
               icon: const Icon(Icons.check_circle_rounded, color: AppColors.success),
               onPressed: () => _run(() => notifier.acceptInvite(widget.invite)),
             ),
@@ -237,15 +263,15 @@ class _EmptyInvites extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.mail_outline_rounded, size: 56, color: AppColors.textSecondary),
-            SizedBox(height: 16),
-            Text('Bekleyen bir şeyiniz yok', style: TextStyle(color: AppColors.textSecondary)),
+            const Icon(Icons.mail_outline_rounded, size: 56, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context)!.noPendingItems, style: const TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       ),

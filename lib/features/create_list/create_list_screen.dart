@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../core/widgets/home_button.dart';
-import '../../data/category_suggestions.dart';
+import '../../core/widgets/voice_input_button.dart';
+import '../../data/ai_list_generator.dart';
 import '../../data/lists_provider.dart';
-import '../../models/checklist_type.dart';
+import '../../data/subscription_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../subscription/paywall_sheet.dart';
+import 'widgets/ai_prompt_sheet.dart';
 import 'widgets/category_selector.dart';
 import 'widgets/settings_toggle.dart';
-import 'widgets/suggestion_chips.dart';
-import 'widgets/type_selector.dart';
 
 class CreateListScreen extends ConsumerStatefulWidget {
   const CreateListScreen({super.key});
@@ -21,13 +24,12 @@ class CreateListScreen extends ConsumerStatefulWidget {
 
 class _CreateListScreenState extends ConsumerState<CreateListScreen> {
   final _titleController = TextEditingController();
-  ChecklistType _type = ChecklistType.permanent;
   String? _category;
-  final Set<String> _selectedSuggestions = {};
   bool _allowRating = false;
   bool _isCheckable = true;
   bool _allowDueDates = false;
   bool _allowNotes = false;
+  List<AiGeneratedItem> _aiItems = const [];
 
   @override
   void dispose() {
@@ -35,10 +37,25 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
     super.dispose();
   }
 
-  void _onCategoryChanged(String? category) {
+  bool _blockedByPaywall() {
+    final subscription = ref.read(subscriptionProvider);
+    if (subscription.canCreateList) return false;
+    showPaywallSheet(context, freeLimit: subscription.freeTotalListLimit);
+    return true;
+  }
+
+  Future<void> _openAiPrompt() async {
+    if (_blockedByPaywall()) return;
+    final result = await showAiPromptSheet(context);
+    if (result == null || !mounted) return;
     setState(() {
-      _category = category;
-      _selectedSuggestions.clear();
+      _titleController.text = result.title;
+      _category = result.category;
+      _isCheckable = result.isCheckable;
+      _allowRating = result.allowRating;
+      _allowDueDates = result.allowDueDates;
+      _allowNotes = result.allowNotes;
+      _aiItems = result.items;
     });
   }
 
@@ -46,18 +63,19 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen bir liste adı girin')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.listNameRequired)),
       );
       return;
     }
+    if (_blockedByPaywall()) return;
 
     final succeeded = await runGuarded(
       context,
       () => ref.read(listsProvider.notifier).createList(
             title: title,
-            type: _type,
             category: _category,
-            initialItemTexts: _selectedSuggestions.toList(),
+            initialItemTexts: [for (final item in _aiItems) item.text],
+            itemSubheadings: [for (final item in _aiItems) item.subheading],
             allowRating: _allowRating,
             isCheckable: _isCheckable,
             allowDueDates: _allowDueDates,
@@ -69,58 +87,53 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final suggestions = _category != null ? categorySuggestions[_category] : null;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Yeni Liste'), actions: const [HomeButton()]),
+      appBar: AppBar(title: Text(l10n.newListButton), actions: const [HomeButton()]),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _openAiPrompt,
+              icon: const Icon(Icons.auto_awesome_rounded),
+              label: Text(l10n.aiCreateButton, style: const TextStyle(fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _titleController,
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Liste adı',
-              hintText: 'ör. Haftalık Market',
+            maxLength: 80,
+            decoration: InputDecoration(
+              labelText: l10n.listNameLabel,
+              suffixIcon: VoiceInputButton(controller: _titleController),
+              hintText: l10n.listNameHint,
             ),
           ),
           const SizedBox(height: 24),
           SettingsToggle(
             icon: Icons.check_circle_outline_rounded,
-            title: 'Tiklenebilir liste',
-            subtitle: 'Kapatırsanız bu liste sadece madde tutmak/sıralamak için kullanılır',
+            title: l10n.checkableToggleTitle,
+            subtitle: l10n.checkableToggleSubtitle,
             value: _isCheckable,
             onChanged: (v) => setState(() => _isCheckable = v),
           ),
-          if (_isCheckable) ...[
-            const SizedBox(height: 24),
-            const Text('Liste tipi', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            TypeSelector(value: _type, onChanged: (t) => setState(() => _type = t)),
-          ],
-          const SizedBox(height: 24),
-          const Text('Kategori (isteğe bağlı)', style: TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 10),
-          CategorySelector(value: _category, onChanged: _onCategoryChanged),
-          if (suggestions != null) ...[
-            const SizedBox(height: 24),
-            const Text('Önerilen maddeler — eklemek istediklerinize dokunun', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            SuggestionChips(
-              suggestions: suggestions,
-              selected: _selectedSuggestions,
-              onToggle: (s) => setState(() {
-                if (!_selectedSuggestions.remove(s)) _selectedSuggestions.add(s);
-              }),
-            ),
-          ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           SettingsToggle(
             icon: Icons.star_rounded,
             iconColor: const Color(0xFFF59E0B),
-            title: 'Yıldız puanlama',
-            subtitle: 'Maddelere 1-5 yıldız verilebilsin',
+            title: l10n.starRatingToggleTitle,
+            subtitle: l10n.starRatingToggleSubtitle,
             value: _allowRating,
             onChanged: (v) => setState(() => _allowRating = v),
           ),
@@ -128,8 +141,8 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
           SettingsToggle(
             icon: Icons.schedule_rounded,
             iconColor: AppColors.secondary,
-            title: 'Tarih/saat eklenebilir',
-            subtitle: 'Maddelere tarih/saat eklenip tarihe göre sıralanabilsin',
+            title: l10n.dueDateToggleTitleGeneric,
+            subtitle: l10n.dueDateToggleSubtitleGeneric,
             value: _allowDueDates,
             onChanged: (v) => setState(() => _allowDueDates = v),
           ),
@@ -137,11 +150,26 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
           SettingsToggle(
             icon: Icons.notes_rounded,
             iconColor: AppColors.secondary,
-            title: 'Not eklenebilir',
-            subtitle: 'Maddelere kısa bir not eklenebilsin',
+            title: l10n.notesToggleTitle,
+            subtitle: l10n.notesToggleSubtitle,
             value: _allowNotes,
             onChanged: (v) => setState(() => _allowNotes = v),
           ),
+          const SizedBox(height: 24),
+          Text(l10n.categoryOptionalLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 10),
+          CategorySelector(value: _category, onChanged: (c) => setState(() => _category = c)),
+          if (_aiItems.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(l10n.aiItemsPreviewLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            _AiItemsPreview(
+              items: _aiItems,
+              onRemove: (index) => setState(() {
+                _aiItems = [..._aiItems]..removeAt(index);
+              }),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -152,11 +180,55 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
             child: ElevatedButton(
               onPressed: _submit,
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Listeyi Oluştur'),
+              child: Text(l10n.createListButton),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AiItemsPreview extends StatelessWidget {
+  final List<AiGeneratedItem> items;
+  final ValueChanged<int> onRemove;
+
+  const _AiItemsPreview({required this.items, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final rows = <Widget>[];
+    String? lastHeading;
+    for (var i = 0; i < items.length; i++) {
+      final heading = items[i].subheading;
+      if (heading != null && heading != lastHeading) {
+        rows.add(Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
+          child: Text(
+            heading,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.textSecondary),
+          ),
+        ));
+      }
+      lastHeading = heading;
+      rows.add(ListTile(
+        dense: true,
+        title: Text(items[i].text),
+        trailing: IconButton(
+          tooltip: l10n.removeTooltip,
+          icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
+          onPressed: () => onRemove(i),
+        ),
+      ));
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(children: rows),
     );
   }
 }

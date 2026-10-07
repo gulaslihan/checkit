@@ -7,23 +7,36 @@ import 'data/auth_provider.dart';
 import 'data/due_date_reminders.dart';
 import 'data/fcm_provider.dart';
 import 'data/lists_provider.dart';
+import 'data/language_sync.dart';
 import 'data/local_notifications.dart';
+import 'data/locale_provider.dart';
 import 'data/notification_navigation.dart';
 import 'data/notification_settings_provider.dart';
 import 'features/auth/auth_screen.dart';
 import 'features/auth/verify_email_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
+import 'l10n/app_localizations.dart';
 
-class CheckItApp extends StatelessWidget {
+class CheckItApp extends ConsumerWidget {
   const CheckItApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localeOverride = ref.watch(localeProvider);
     return MaterialApp(
-      title: 'CheckIt',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       navigatorKey: navigatorKey,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // Türkçe her zaman desteklendiği için cihaz dili ne olursa olsun bir
+      // eşleşme bulunur — bilinmeyen bir dilde (örn. Almanca) İngilizce'ye
+      // düşer, Türkçe'ye değil (daha geniş kitleye ulaşır). `locale` null
+      // olduğunda Flutter bu listeye göre cihaz dilini otomatik çözer;
+      // kullanıcı Profil > Dil'den elle bir dil seçtiyse (localeOverride)
+      // sistem dilini geçersiz kılar.
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: localeOverride,
       home: const _AuthGate(),
     );
   }
@@ -52,6 +65,14 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
       syncDueDateReminders(lists, enabled: enabled, myEmail: myEmail);
     });
 
+    // Keeps `users/{uid}.language` current so Cloud Functions can pick the
+    // right language for push text — re-synced whenever the resolved
+    // language changes (manual override from Profile > Dil), not just once.
+    ref.listen(localeProvider, (previous, localeOverride) {
+      final uid = ref.read(authStateProvider).value?.uid;
+      if (uid != null) syncLanguagePreference(uid, localeOverride);
+    });
+
     return authState.when(
       data: (user) {
         if (user == null) return const AuthScreen();
@@ -60,6 +81,7 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
           _registeredForUid = user.uid;
           requestLocalNotificationPermission();
           registerFcmToken(user.uid);
+          syncLanguagePreference(user.uid, ref.read(localeProvider));
         }
         return const DashboardScreen();
       },
@@ -67,7 +89,7 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
         body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
       ),
       error: (error, _) => Scaffold(
-        body: Center(child: Text('Bir hata oluştu: $error')),
+        body: Center(child: Text(AppLocalizations.of(context)!.errorGeneric)),
       ),
     );
   }

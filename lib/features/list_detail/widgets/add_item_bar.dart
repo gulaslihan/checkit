@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/voice_input_button.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AddItemBar extends StatefulWidget {
   final ValueChanged<String> onAdd;
@@ -23,11 +24,6 @@ class _AddItemBarState extends State<AddItemBar> {
     _controller.clear();
   }
 
-  void _setFromVoice(String text) {
-    _controller.text = text;
-    _controller.selection = TextSelection.collapsed(offset: text.length);
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -43,7 +39,6 @@ class _AddItemBarState extends State<AddItemBar> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-            boxShadow: AppTheme.softShadow,
           ),
           child: Row(
             children: [
@@ -52,15 +47,17 @@ class _AddItemBarState extends State<AddItemBar> {
                   controller: _controller,
                   textInputAction: TextInputAction.done,
                   textCapitalization: TextCapitalization.sentences,
+                  maxLength: 200,
                   onSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(
-                    hintText: 'Yeni madde ekle...',
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.addItemHint,
                     border: InputBorder.none,
+                    counterText: '',
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
                 ),
               ),
-              VoiceInputButton(onResult: _setFromVoice),
+              VoiceInputButton(controller: _controller),
               IconButton(
                 onPressed: _submit,
                 icon: const Icon(Icons.add_circle_rounded, color: AppColors.primary, size: 30),

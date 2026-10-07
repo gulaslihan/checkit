@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/person_label.dart';
 import '../../../core/widgets/initials_avatar.dart';
+import '../../../l10n/app_localizations.dart';
 
 Future<void> showAssigneePicker({
   required BuildContext context,
@@ -11,6 +12,7 @@ Future<void> showAssigneePicker({
   required ValueChanged<String?> onSelected,
   Map<String, String> nicknames = const {},
 }) {
+  final l10n = AppLocalizations.of(context)!;
   return showModalBottomSheet(
     context: context,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -19,16 +21,16 @@ Future<void> showAssigneePicker({
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Kime atansın?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.assignToTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
             ListTile(
               leading: const CircleAvatar(
                 backgroundColor: AppColors.background,
                 child: Icon(Icons.person_off_outlined, color: AppColors.textSecondary),
               ),
-              title: const Text('Atanmamış'),
+              title: Text(l10n.unassignedLabel),
               trailing: current == null ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
               onTap: () {
                 onSelected(null);
@@ -38,10 +40,10 @@ Future<void> showAssigneePicker({
             for (final person in collaborators)
               ListTile(
                 leading: InitialsAvatar(
-                  name: personLabel(person) == 'Siz' ? 'Siz' : (nicknames[person] ?? person),
+                  name: assigneeChipLabel(context, person, nicknames),
                   colorKey: person,
                 ),
-                title: Text(personLabel(person) == 'Siz' ? 'Siz' : (nicknames[person] ?? person)),
+                title: Text(assigneeChipLabel(context, person, nicknames)),
                 trailing: current == person ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
                 onTap: () {
                   onSelected(person);

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "checkit-web",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8090"],
+      "port": 8090
+    },
+    {
+      "name": "checkit-web-static",
+      "runtimeExecutable": "dhttpd",
+      "runtimeArgs": ["--path", "build/web", "--port", "8091"],
+      "port": 8091
+    }
+  ]
+}

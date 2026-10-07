@@ -1,39 +1,103 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Loose backstop against a runaway write (e.g. a bypassed-client script)
+    // blowing up a list past Firestore's 1MB document cap — generous enough
+    // to never bother a real user; the client's own UI limits (see
+    // lib/features/**, maxLength: 80/200/400) are the tight, user-facing ones.
+    function isValidListShape(data) {
+      return data.title is string && data.title.size() <= 200 &&
+             data.items is list && data.items.size() <= 1000;
+    }
+
+    // Subscription quota check for creating a new list (any list — manual or
+    // AI, no distinction). Uses getAfter() to REQUIRE that this same write
+    // also includes a paired +1 increment to users/{uid}.createdListCount in
+    // the same batch (see the users/{uid} counter-update rule below) — this
+    // is what stops a client from creating a list without ever advancing its
+    // own counter (the counter-update rule on its own only stops incrementing
+    // *without* creating a list — this half closes the other direction).
+    // `config/appConfig.freeTotalListLimit` is the single source of truth for
+    // the limit (falls back to 5 if that doc/field is missing).
+    function canCreateList() {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      let cfgPath = /databases/$(database)/documents/config/appConfig;
+      let userBefore = exists(userPath) ? get(userPath).data : {};
+      let userAfter = getAfter(userPath).data;
+      let cfg = exists(cfgPath) ? get(cfgPath).data : {};
+      let freeLimit = cfg.get('freeTotalListLimit', 5);
+      let isPremium = userBefore.get('subscriptionActive', false) == true;
+      let beforeCount = userBefore.get('createdListCount', 0);
+      let afterCount = userAfter.get('createdListCount', 0);
+      return afterCount == beforeCount + 1 && (isPremium || afterCount <= freeLimit);
+    }
+
     match /lists/{listId} {
       allow read: if request.auth != null &&
         (resource.data.ownerId == request.auth.uid ||
          request.auth.token.email in resource.data.sharedWith);
 
+      // sharedWith boş başlamalı — paylaşım SADECE davet/kabul akışıyla
+      // (aşağıdaki accept kuralı) büyüyebilir, sahip bile listeyi
+      // oluştururken kimseyi doğrudan ekleyemez (bkz. 18 Eylül güvenlik
+      // taraması notu: bu olmadan sahip, alıcının onayı olmadan listeyi
+      // birinin hesabına zorla "paylaşabiliyordu").
       allow create: if request.auth != null &&
-        request.resource.data.ownerId == request.auth.uid;
+        request.resource.data.ownerId == request.auth.uid &&
+        isValidListShape(request.resource.data) &&
+        request.resource.data.sharedWith.size() == 0 &&
+        canCreateList();
 
-      // Sahip her alanı değiştirebilir.
+      // Sahip her alanı değiştirebilir — ama sharedWith'i SADECE
+      // küçültebilir (birini çıkarabilir), asla yeni biri ekleyemez; yeni
+      // eklemenin tek yolu aşağıdaki accept-invite kuralı (davet edilenin
+      // kendi kendini eklemesi). new ⊆ old kontrolü bunu garanti ediyor.
       allow update: if request.auth != null &&
-        resource.data.ownerId == request.auth.uid;
+        resource.data.ownerId == request.auth.uid &&
+        isValidListShape(request.resource.data) &&
+        resource.data.sharedWith.hasAll(request.resource.data.sharedWith);
 
       // Paylaşılan kişiler sadece maddeleri, liste sırasını ve son
       // değiştiren bilgisini (push bildirimlerinin kimi hariç tutacağını
       // belirlemek için, bkz. functions/index.js) değiştirebilir.
+      // lastModifiedBy dokunuluyorsa sadece kendi e-postan olabilir —
+      // aksi halde biri başkasının adını yazıp o kişinin bildirimini
+      // sessizce bastırabilirdi.
       allow update: if request.auth != null &&
         request.auth.token.email in resource.data.sharedWith &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['items', 'sortIndex', 'lastModifiedBy']);
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['items', 'sortIndex', 'lastModifiedBy', 'subheadingOrder']) &&
+        isValidListShape(request.resource.data) &&
+        (!('lastModifiedBy' in request.resource.data.diff(resource.data).affectedKeys()) ||
+         request.resource.data.lastModifiedBy == request.auth.token.email);
 
-      // Paylaşılan bir kişi, listeden SADECE kendi e-postasını çıkararak ayrılabilir.
+      // Paylaşılan bir kişi, listeden SADECE kendi e-postasını çıkararak
+      // ayrılabilir. items'ın da değişmesine izin veriliyor —
+      // removeCollaborator() kendi assignedTo'sunu temizlemek için items'ı
+      // her zaman yeniden gönderiyor (ayrılan kişiye ait madde yoksa bile,
+      // ki bu durumda içerik aynı kalsa da Firestore'un diff'i yine de
+      // items'ı "değişti" sayabiliyor — 19 Eylül'de bu yüzden ayrılma
+      // tamamen kırılmış bulundu). Yeni bir yetki açığı değil: paylaşımcılar
+      // zaten yukarıdaki kuralla items'ı serbestçe değiştirebiliyor. new ⊆
+      // old şartı (sharedWith için), "ayrılırken" başka birini de çıkarıp
+      // yerine yabancı bir e-posta sokmayı engelliyor.
       allow update: if request.auth != null &&
         request.auth.token.email in resource.data.sharedWith &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith', 'items']) &&
+        isValidListShape(request.resource.data) &&
+        resource.data.sharedWith.hasAll(request.resource.data.sharedWith) &&
         !(request.auth.token.email in request.resource.data.sharedWith) &&
         request.resource.data.sharedWith.size() == resource.data.sharedWith.size() - 1;
 
       // Bir davet alıcısı, kendisi için oluşturulmuş gerçek bir davet varsa
       // (deterministik davet doküman kimliğiyle kanıtlanır) kendini
       // sharedWith'e ekleyerek daveti kabul edebilir — sahibin ayrıca son
-      // bir onay vermesi gerekmiyor.
+      // bir onay vermesi gerekmiyor. old ⊆ new şartı, "kabul ederken" aynı
+      // anda başka birini çıkarıp yerine yabancı biri eklemeyi (net sayı
+      // hâlâ +1 olsa bile) engelliyor.
       allow update: if request.auth != null &&
         request.auth.token.email_verified == true &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith']) &&
+        request.resource.data.sharedWith.hasAll(resource.data.sharedWith) &&
         request.auth.token.email in request.resource.data.sharedWith &&
         !(request.auth.token.email in resource.data.sharedWith) &&
         request.resource.data.sharedWith.size() == resource.data.sharedWith.size() + 1 &&
@@ -80,11 +144,54 @@ service cloud.firestore {
          request.auth.token.email == resource.data.recipientEmail);
     }
 
-    // Bildirim tercihleri + FCM cihaz token'ı. Sadece hesap sahibi
-    // okuyup yazabilir — Cloud Function bunu Admin SDK ile okuyacağı
-    // için bu kurallara tabi değil, bu sadece istemci erişimini kısıtlıyor.
+    // Bildirim tercihleri, FCM cihaz token'ı, dil tercihi ve abonelik/liste-
+    // sayacı alanları. Sadece hesap sahibi okuyabilir. Yazma tarafı alan
+    // bazlı kısıtlı — bkz. aşağıdaki üç ayrı allow create/update kuralı.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Kullanıcının serbestçe değiştirebildiği alanlar — abonelik/sayaç
+      // alanları burada YOK, bilerek: aşağıdaki iki kural onları ayrıca ve
+      // dar kapsamlı olarak yönetiyor.
+      allow create: if request.auth != null && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly([
+          'email', 'language', 'onItemCompleted', 'onItemAdded', 'onTaskAssigned',
+          'onLongPending', 'longPendingDays', 'onDueDate', 'completionSoundEnabled',
+          'fcmToken', 'createdListCount'
+        ]) &&
+        // Hesabın ilk dokümanı bir liste oluşturmayla aynı anda yazılıyorsa
+        // (bkz. lists/create -> canCreateList()) sayaç tam olarak 1'den
+        // başlamalı; liste oluşturmadan bağımsız bir ilk yazımda (örn. dil
+        // senkronu) bu alan hiç bulunmamalı.
+        (!('createdListCount' in request.resource.data) || request.resource.data.createdListCount == 1);
+
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email', 'language', 'onItemCompleted', 'onItemAdded', 'onTaskAssigned',
+          'onLongPending', 'longPendingDays', 'onDueDate', 'completionSoundEnabled', 'fcmToken'
+        ]);
+
+      // Kalıcı liste sayacı: sadece +1 artışla, ve sadece tek başına (başka
+      // hiçbir alanla birlikte olmadan) değiştirilebilir — bu sayede bir
+      // liste oluşturma yazımıyla aynı batch'te kullanılması zorunlu hale
+      // gelir (bkz. lists/create -> canCreateList(), orada getAfter() ile bu
+      // eşleşme ayrıca doğrulanıyor).
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['createdListCount']) &&
+        request.resource.data.createdListCount == resource.data.get('createdListCount', 0) + 1;
+
+      // subscriptionActive, aiGenerationsDate, aiGenerationsCount: bilerek
+      // hiçbir allow update/create kuralında yok — bu alanlar sadece Cloud
+      // Functions'tan (Admin SDK, bu kurallara tabi değil) yazılabilir.
+    }
+
+    // Abonelik/AI limitleri gibi genel uygulama ayarları — sadece okunur,
+    // sadece Firebase Console'dan (veya Admin SDK'dan) elle yazılır. Okuma
+    // kuralı olmadan subscription_provider.dart'ın canlı dinleyicisi sessizce
+    // permission-denied alıp hep sabit varsayılana düşüyordu (18 Eylül'de
+    // bu taramada fark edildi).
+    match /config/{document} {
+      allow read: if request.auth != null;
     }
   }
 }

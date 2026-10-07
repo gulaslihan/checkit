@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -8,9 +9,21 @@ import 'notification_navigation.dart';
 
 final _plugin = FlutterLocalNotificationsPlugin();
 
+// Channel names shown in the OS's own notification settings (e.g. Android
+// Settings > Apps > CheckIt > Notifications) — tied to device language
+// rather than the in-app override, since that surrounding chrome is the
+// OS's own language regardless. No BuildContext this deep in the data
+// layer, so PlatformDispatcher instead of AppLocalizations.
+bool get _deviceIsTurkish => PlatformDispatcher.instance.locale.languageCode == 'tr';
+String get _dueDateChannelName => _deviceIsTurkish ? 'Tarih/Saat Hatırlatmaları' : 'Date/Time Reminders';
+String get _pushChannelName => _deviceIsTurkish ? 'Bildirimler' : 'Notifications';
+
 /// Call once before runApp. Hardcodes Europe/Istanbul rather than pulling in
-/// a device-timezone-detection package — fine while the app is Turkish-only
-/// (see the P3 decision to defer multi-language/multi-region support).
+/// a device-timezone-detection package.
+/// TODO(i18n): now that the app supports English too, this is a real gap for
+/// users outside Turkey's timezone — due-date reminders fire on Istanbul
+/// time regardless of where the device actually is. Needs a real
+/// device-timezone package (e.g. flutter_timezone) to fix properly.
 Future<void> initializeLocalNotifications() async {
   tz_data.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
@@ -51,10 +64,10 @@ Future<void> scheduleDueDateReminder({
     listTitle,
     itemText,
     tz.TZDateTime.from(dueDate, tz.local),
-    const NotificationDetails(
+    NotificationDetails(
       android: AndroidNotificationDetails(
         'due_dates',
-        'Tarih/Saat Hatırlatmaları',
+        _dueDateChannelName,
         importance: Importance.high,
         priority: Priority.high,
       ),
@@ -82,10 +95,10 @@ Future<void> showPushNotification({
     DateTime.now().millisecondsSinceEpoch.remainder(0x7fffffff),
     title,
     body,
-    const NotificationDetails(
+    NotificationDetails(
       android: AndroidNotificationDetails(
         'push',
-        'Bildirimler',
+        _pushChannelName,
         importance: Importance.high,
         priority: Priority.high,
       ),

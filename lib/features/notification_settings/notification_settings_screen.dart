@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../core/widgets/home_button.dart';
 import '../../data/notification_settings_provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'widgets/notification_toggle_row.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
@@ -13,28 +14,39 @@ class NotificationSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(notificationSettingsProvider);
     final notifier = ref.read(notificationSettingsProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bildirim Ayarları'), actions: const [HomeButton()]),
+      appBar: AppBar(title: Text(l10n.notificationSettingsTitle), actions: const [HomeButton()]),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          NotificationToggleRow(
+            icon: Icons.volume_up_rounded,
+            title: l10n.completionSoundToggleTitle,
+            subtitle: l10n.completionSoundToggleSubtitle,
+            value: settings.completionSoundEnabled,
+            onChanged: (v) => runGuarded(context, () => notifier.setCompletionSoundEnabled(v)),
+          ),
+          const SizedBox(height: 8),
+          const Divider(),
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
-                SizedBox(width: 10),
+                const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Tarih/saat hatırlatmaları bu telefonda anında çalışır. Diğer ayarlar, uygulama Firebase üzerinden bildirim gönderdiğinde bu tercihlere göre karar verir.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    l10n.notifSettingsInfoBanner,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
                   ),
                 ),
               ],
@@ -43,36 +55,36 @@ class NotificationSettingsScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           NotificationToggleRow(
             icon: Icons.schedule_send_rounded,
-            title: 'Tarih/saati gelen maddeler',
-            subtitle: 'Bir maddeye eklediğiniz tarih/saat gelince bu telefonda hatırlatılsın',
+            title: l10n.dueDateToggleTitle,
+            subtitle: l10n.dueDateToggleSubtitle,
             value: settings.onDueDate,
             onChanged: (v) => runGuarded(context, () => notifier.setDueDate(v)),
           ),
           NotificationToggleRow(
             icon: Icons.check_circle_outline_rounded,
-            title: 'Madde tamamlandığında',
-            subtitle: 'Paylaşımlı bir listede biri madde tikleyince haber verilsin',
+            title: l10n.itemCompletedToggleTitle,
+            subtitle: l10n.itemCompletedToggleSubtitle,
             value: settings.onItemCompleted,
             onChanged: (v) => runGuarded(context, () => notifier.setItemCompleted(v)),
           ),
           NotificationToggleRow(
             icon: Icons.add_circle_outline_rounded,
-            title: 'Yeni madde eklendiğinde',
-            subtitle: 'Paylaşımlı bir listeye yeni madde eklenince haber verilsin',
+            title: l10n.itemAddedToggleTitle,
+            subtitle: l10n.itemAddedToggleSubtitle,
             value: settings.onItemAdded,
             onChanged: (v) => runGuarded(context, () => notifier.setItemAdded(v)),
           ),
           NotificationToggleRow(
             icon: Icons.assignment_ind_outlined,
-            title: 'Görev atandığında',
-            subtitle: 'Size bir madde atandığında haber verilsin',
+            title: l10n.taskAssignedToggleTitle,
+            subtitle: l10n.taskAssignedToggleSubtitle,
             value: settings.onTaskAssigned,
             onChanged: (v) => runGuarded(context, () => notifier.setTaskAssigned(v)),
           ),
           NotificationToggleRow(
             icon: Icons.schedule_rounded,
-            title: 'Uzun süre bekleyen maddeler',
-            subtitle: 'Bir madde uzun süredir tamamlanmadıysa hatırlatılsın',
+            title: l10n.longPendingToggleTitle,
+            subtitle: l10n.longPendingToggleSubtitle,
             value: settings.onLongPending,
             onChanged: (v) => runGuarded(context, () => notifier.setLongPending(v)),
             extra: _ThresholdPicker(
@@ -96,9 +108,10 @@ class _ThresholdPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        const Text('Kaç gün sonra:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(l10n.daysThresholdLabel, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         const SizedBox(width: 10),
         ..._options.map((days) {
           final isSelected = days == selectedDays;
@@ -115,7 +128,7 @@ class _ThresholdPicker extends StatelessWidget {
                   border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
                 ),
                 child: Text(
-                  days == 1 ? '1 gün' : '$days gün',
+                  l10n.daysCount(days),
                   style: TextStyle(
                     color: isSelected ? Colors.white : AppColors.textPrimary,
                     fontSize: 12,

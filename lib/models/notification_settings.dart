@@ -9,6 +9,12 @@ class NotificationSettings {
   /// doesn't need push/Cloud Functions, scheduled entirely on the phone.
   final bool onDueDate;
 
+  /// Local in-app chime when *you* check an item off — unrelated to the
+  /// other fields here (those gate Firebase-sent pushes); kept in this same
+  /// Firestore-synced doc anyway to avoid a second settings store for one
+  /// toggle.
+  final bool completionSoundEnabled;
+
   const NotificationSettings({
     this.onItemCompleted = true,
     this.onItemAdded = true,
@@ -16,6 +22,7 @@ class NotificationSettings {
     this.onLongPending = true,
     this.longPendingDays = 3,
     this.onDueDate = true,
+    this.completionSoundEnabled = true,
   });
 
   NotificationSettings copyWith({
@@ -25,6 +32,7 @@ class NotificationSettings {
     bool? onLongPending,
     int? longPendingDays,
     bool? onDueDate,
+    bool? completionSoundEnabled,
   }) {
     return NotificationSettings(
       onItemCompleted: onItemCompleted ?? this.onItemCompleted,
@@ -33,6 +41,7 @@ class NotificationSettings {
       onLongPending: onLongPending ?? this.onLongPending,
       longPendingDays: longPendingDays ?? this.longPendingDays,
       onDueDate: onDueDate ?? this.onDueDate,
+      completionSoundEnabled: completionSoundEnabled ?? this.completionSoundEnabled,
     );
   }
 
@@ -43,6 +52,7 @@ class NotificationSettings {
         'onLongPending': onLongPending,
         'longPendingDays': longPendingDays,
         'onDueDate': onDueDate,
+        'completionSoundEnabled': completionSoundEnabled,
       };
 
   factory NotificationSettings.fromMap(Map<String, dynamic> map) => NotificationSettings(
@@ -52,5 +62,6 @@ class NotificationSettings {
         onLongPending: map['onLongPending'] as bool? ?? true,
         longPendingDays: map['longPendingDays'] as int? ?? 3,
         onDueDate: map['onDueDate'] as bool? ?? true,
+        completionSoundEnabled: map['completionSoundEnabled'] as bool? ?? true,
       );
 }

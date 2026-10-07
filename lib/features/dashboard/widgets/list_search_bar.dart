@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/voice_input_button.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ListSearchBar extends StatefulWidget {
   final ValueChanged<String> onChanged;
+  final String? hintText;
 
-  const ListSearchBar({super.key, required this.onChanged});
+  const ListSearchBar({super.key, required this.onChanged, this.hintText});
 
   @override
   State<ListSearchBar> createState() => _ListSearchBarState();
@@ -15,12 +17,6 @@ class ListSearchBar extends StatefulWidget {
 
 class _ListSearchBarState extends State<ListSearchBar> {
   final _controller = TextEditingController();
-
-  void _setText(String text) {
-    _controller.text = text;
-    _controller.selection = TextSelection.collapsed(offset: text.length);
-    widget.onChanged(text);
-  }
 
   @override
   void dispose() {
@@ -33,15 +29,14 @@ class _ListSearchBarState extends State<ListSearchBar> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
       ),
       child: TextField(
         controller: _controller,
         onChanged: widget.onChanged,
         decoration: InputDecoration(
-          hintText: 'Listelerde ara...',
+          hintText: widget.hintText ?? AppLocalizations.of(context)!.searchListsHint,
           prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
-          suffixIcon: VoiceInputButton(onResult: _setText),
+          suffixIcon: VoiceInputButton(controller: _controller, onChanged: widget.onChanged),
         ),
       ),
     );

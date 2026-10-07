@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/checklist_item.dart';
 
 class ItemEditorResult {
@@ -104,6 +105,7 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -116,13 +118,14 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Maddeyi Düzenle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(l10n.editItemTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             TextField(
               controller: _textController,
               autofocus: true,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(labelText: 'Madde'),
+              maxLength: 200,
+              decoration: InputDecoration(labelText: l10n.itemLabel),
             ),
             if (widget.allowNotes) ...[
               const SizedBox(height: 12),
@@ -130,7 +133,8 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
                 controller: _noteController,
                 minLines: 2,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Not (isteğe bağlı)'),
+                maxLength: 400,
+                decoration: InputDecoration(labelText: l10n.noteOptionalLabel),
               ),
             ],
             if (widget.allowDueDates) ...[
@@ -141,12 +145,12 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
                     child: OutlinedButton.icon(
                       onPressed: _pickDueDate,
                       icon: const Icon(Icons.schedule_rounded, size: 18),
-                      label: Text(_dueDate == null ? 'Tarih/Saat Ekle' : formatDueDate(_dueDate!)),
+                      label: Text(_dueDate == null ? l10n.addDueDateButton : formatDueDate(context, _dueDate!)),
                     ),
                   ),
                   if (_dueDate != null)
                     IconButton(
-                      tooltip: 'Tarihi kaldır',
+                      tooltip: l10n.removeDueDateTooltip,
                       icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                       onPressed: () => setState(() => _dueDate = null),
                     ),
@@ -161,7 +165,7 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                 ),
-                child: const Text('Kaydet'),
+                child: Text(l10n.save),
               ),
             ),
           ],

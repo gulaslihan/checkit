@@ -65,4 +65,5 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   Future<void> setLongPending(bool value) => _update(state.copyWith(onLongPending: value));
   Future<void> setLongPendingDays(int days) => _update(state.copyWith(longPendingDays: days));
   Future<void> setDueDate(bool value) => _update(state.copyWith(onDueDate: value));
+  Future<void> setCompletionSoundEnabled(bool value) => _update(state.copyWith(completionSoundEnabled: value));
 }

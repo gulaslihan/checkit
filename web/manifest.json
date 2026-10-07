@@ -1,11 +1,11 @@
 {
-    "name": "checkit",
-    "short_name": "checkit",
+    "name": "CheckIt",
+    "short_name": "CheckIt",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFFFFF",
-    "theme_color": "#FFFFFF",
-    "description": "A new Flutter project.",
+    "background_color": "#3D6146",
+    "theme_color": "#3D6146",
+    "description": "Paylaşımlı liste ve görev uygulaması.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/utils/error_feedback.dart';
 import '../models/connection.dart';
 import 'auth_provider.dart';
 
@@ -68,19 +69,19 @@ final myConnectionsProvider = StreamProvider<List<Connection>>((ref) {
 });
 
 class ConnectionsNotifier {
-  Future<String?> sendRequest(String recipientEmail) async {
+  Future<AppErrorKind?> sendRequest(String recipientEmail) async {
     final email = recipientEmail.trim().toLowerCase();
     if (email.isEmpty) return null;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    if (email == user.email?.toLowerCase()) return 'Kendinizi ekleyemezsiniz.';
+    if (email == user.email?.toLowerCase()) return AppErrorKind.cannotAddSelf;
 
     final existingAsSender = await _connectionsCollection
         .where('requesterId', isEqualTo: user.uid)
         .where('recipientEmail', isEqualTo: email)
         .limit(1)
         .get();
-    if (existingAsSender.docs.isNotEmpty) return 'Bu kişiye zaten bir bağlantı isteği gönderilmiş.';
+    if (existingAsSender.docs.isNotEmpty) return AppErrorKind.connectionAlreadySent;
 
     await _connectionsCollection.add({
       'requesterId': user.uid,

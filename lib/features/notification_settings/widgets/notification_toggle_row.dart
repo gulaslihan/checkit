@@ -28,7 +28,7 @@ class NotificationToggleRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Column(
         children: [

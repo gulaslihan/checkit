@@ -1,0 +1,324 @@
+<title>Sahip Yolculuğu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF7F0;
+    --surface: #FFFFFF;
+    --surface-sunk: #F1ECDF;
+    --ink: #2A2A26;
+    --ink-soft: #6E6B5E;
+    --ink-faint: #9A967F;
+    --line: #DDD6C3;
+    --line-strong: #C7BEA4;
+    --accent: #3F6B35;
+    --accent-soft: #E4EEDF;
+    --critical: #A83B2C;
+    --critical-soft: #F5E2DD;
+    --warning: #9C6B1F;
+    --warning-soft: #F3E7D0;
+    --minor: #55705B;
+    --minor-soft: #E4E9E1;
+    --band-bg: #262521;
+    --band-ink: #F3EFE2;
+    --band-ink-soft: #B9B4A2;
+    --shadow: 0 1px 2px rgba(42,42,38,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1D1C19;
+      --surface: #262521;
+      --surface-sunk: #201F1C;
+      --ink: #F0ECDF;
+      --ink-soft: #B4AF9C;
+      --ink-faint: #837F6E;
+      --line: #3A382F;
+      --line-strong: #4A4738;
+      --accent: #8FBB7E;
+      --accent-soft: #2E3B29;
+      --critical: #E08874;
+      --critical-soft: #3E2822;
+      --warning: #D9AC5C;
+      --warning-soft: #3B2F1B;
+      --minor: #93AE93;
+      --minor-soft: #2A3129;
+      --band-bg: #121110;
+      --band-ink: #F3EFE2;
+      --band-ink-soft: #928D7B;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1D1C19;
+    --surface: #262521;
+    --surface-sunk: #201F1C;
+    --ink: #F0ECDF;
+    --ink-soft: #B4AF9C;
+    --ink-faint: #837F6E;
+    --line: #3A382F;
+    --line-strong: #4A4738;
+    --accent: #8FBB7E;
+    --accent-soft: #2E3B29;
+    --critical: #E08874;
+    --critical-soft: #3E2822;
+    --warning: #D9AC5C;
+    --warning-soft: #3B2F1B;
+    --minor: #93AE93;
+    --minor-soft: #2A3129;
+    --band-bg: #121110;
+    --band-ink: #F3EFE2;
+    --band-ink-soft: #928D7B;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Manrope', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
+
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; text-wrap: balance; margin: 0; }
+
+  .hero {
+    background: var(--band-bg);
+    color: var(--band-ink);
+    padding: 56px 20px 40px;
+    margin-bottom: 8px;
+  }
+  .hero-inner { max-width: 780px; margin: 0 auto; }
+  .hero .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--band-ink-soft);
+    margin-bottom: 14px;
+  }
+  .hero h1 { font-size: 34px; line-height: 1.15; max-width: 20ch; }
+  .hero p.lede {
+    color: var(--band-ink-soft);
+    font-size: 15px;
+    max-width: 52ch;
+    margin-top: 14px;
+  }
+
+  .quickscan {
+    background: var(--band-bg);
+    padding: 4px 20px 44px;
+  }
+  .quickscan-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .qrow {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(243,239,226,0.06);
+    border: 1px solid rgba(243,239,226,0.12);
+    border-radius: 10px;
+  }
+  .qrow .num { font-family: 'Fraunces', serif; font-size: 15px; color: var(--band-ink-soft); flex-shrink: 0; width: 1.4em; }
+  .qrow .txt { color: var(--band-ink); font-size: 14.5px; }
+  .qrow .txt b { color: #fff; font-weight: 700; }
+
+  section.stage { padding: 44px 0 8px; border-top: 1px solid var(--line); }
+  section.stage:first-of-type { border-top: none; }
+  .stage-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .stage-eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); white-space: nowrap;
+  }
+  .stage h2 { font-size: 22px; }
+  .stage .ideal {
+    color: var(--ink-soft); font-size: 14.5px; margin: 10px 0 20px; max-width: 62ch;
+  }
+  .stage .ideal .tag {
+    font-weight: 700; color: var(--ink); font-family: 'Manrope', sans-serif; font-size: 11.5px;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-right: 6px;
+  }
+
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .finding-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .finding h3 { font-size: 15.5px; font-weight: 600; font-family: 'Manrope', sans-serif; line-height: 1.4; }
+  .pill {
+    flex-shrink: 0; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px; white-space: nowrap; margin-top: 2px;
+  }
+  .pill.critical { background: var(--critical-soft); color: var(--critical); }
+  .pill.warning { background: var(--warning-soft); color: var(--warning); }
+  .pill.minor { background: var(--minor-soft); color: var(--minor); }
+
+  .finding p { font-size: 13.8px; color: var(--ink-soft); margin: 6px 0; }
+  .finding .fix { font-size: 13.8px; color: var(--ink); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line-strong); }
+  .finding .fix b { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 4px; }
+  code {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 12.3px;
+    background: var(--surface-sunk);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  .strengths {
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 40px 0;
+  }
+  .strengths h3 { font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .strengths ul { margin: 0; padding-left: 18px; }
+  .strengths li { font-size: 14px; color: var(--ink); margin-bottom: 6px; }
+  .strengths li:last-child { margin-bottom: 0; }
+
+  footer { padding-top: 40px; border-top: 1px solid var(--line); margin-top: 20px; }
+  footer p { font-size: 12.5px; color: var(--ink-faint); }
+
+  @media (max-width: 520px) {
+    .hero h1 { font-size: 27px; }
+    .finding-top { flex-direction: column; }
+  }
+</style>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">CheckIt · UX denetimi</div>
+    <h1>Liste sahibinin uçtan uca yolculuğu</h1>
+    <p class="lede">Kayıttan günlük kullanıma, sekiz aşamanın her birinde "seamless" deneyimin nerede kırıldığını gerçek koda bakarak işaretledim. Tahmine değil, dosya ve satır referanslarına dayanıyor.</p>
+  </div>
+</div>
+
+<div class="quickscan">
+  <div class="quickscan-inner">
+    <div class="qrow"><span class="num">01</span><span class="txt"><b>En kritik:</b> "Yükleniyor" ile "gerçekten boş" hiçbir ekranda ayırt edilemiyor — her açılışta yanlış boş ekran riski var.</span></div>
+    <div class="qrow"><span class="num">02</span><span class="txt"><b>İkinci kritik:</b> Bildirime dokunup uygulamayı soğuk açmak, kullanıcıyı sessizce geri atabiliyor.</span></div>
+    <div class="qrow"><span class="num">03</span><span class="txt"><b>Üçüncü:</b> Web'de push bildirimleri hiç çalışmıyor ve kullanıcı bunun farkına asla varamıyor.</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 1</span><h2>İlk kurulum</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Kayıt ol → e-postanı doğrula → uygulama otomatik olarak ana sayfaya geçsin, hiç elle "kontrol et" gerekmesin.</p>
+
+    <div class="finding">
+      <div class="finding-top">
+        <h3>E-posta doğrulaması uygulamaya dönüşte otomatik algılanmıyor</h3>
+        <span class="pill warning">Orta</span>
+      </div>
+      <p>Kullanıcı e-postadaki linke tıklayıp uygulamaya geri döndüğünde hâlâ doğrulama ekranında kalıyor — <code>verify_email_screen.dart</code>'taki kontrol sadece "Doğruladım, kontrol et" butonuna basınca çalışıyor, uygulama ön plana dönünce (resume) otomatik tetiklenmiyor.</p>
+      <div class="fix"><b>Seamless olması için</b>Uygulama ön plana her döndüğünde (`AppLifecycleState.resumed`) otomatik olarak doğrulama durumunu kontrol etmeli — buton sadece manuel bir yedek olarak kalsın.</div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 2</span><h2>Ana sayfa</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Uygulama açılır açılmaz, gerçekten sahip olduğun listeler — ne bir eksik ne fazla, ne de yanlış bir "boş" izlenimi.</p>
+
+    <div class="finding">
+      <div class="finding-top">
+        <h3>Sistemik: "yükleniyor" durumu hiçbir listede yok</h3>
+        <span class="pill critical">Kritik</span>
+      </div>
+      <p><code>ListsNotifier</code> state'ini <code>super([])</code> ile boş başlatıyor (<code>lists_provider.dart</code>) — Firestore'dan ilk veri gelene kadar geçen o kısa sürede ekran, verisi olan bir kullanıcıya bile <em>"Henüz listeniz yok"</em> gösteriyor. Aynı örüntü <code>myInvitesProvider</code> / <code>myConnectionsProvider</code>'da da var (<code>notifications_provider.dart</code>: <code>.value ?? const []</code> — yüklenme ile boşluk aynı satırda karışıyor).</p>
+      <p>Bu tek bir ekranın hatası değil — Ana Sayfa, Liste Detayı, Davetlerim, Bağlantılar, Bekleyen Maddeler ekranlarının hepsi aynı örüntüyü paylaşıyor. Her soğuk açılışta veya yavaş bağlantıda, kullanıcının verisi "kaybolmuş" gibi görünebiliyor.</p>
+      <div class="fix"><b>Seamless olması için</b>Her provider'a üçüncü bir durum eklenmeli: yükleniyor / boş / dolu. İlk snapshot gelene kadar bir iskelet/spinner gösterilmeli, "henüz hiç şeyin yok" mesajı sadece gerçekten doğrulandığında çıkmalı.</div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 3</span><h2>Liste oluşturma</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Form doldur, oluştur, anında ana sayfada gör. Burada gerçek bir kırılma bulamadım — tek seferlik yazma işlemi, hata durumunda geri bildirim var.</p>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 4</span><h2>Liste içinde madde yönetimi</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Bildirime dokun, doğrudan ilgili listeye düş — hiç ekstra adım, hiç "neden burada değilim" anı olmasın.</p>
+
+    <div class="finding">
+      <div class="finding-top">
+        <h3>Bildirimden soğuk açılışta liste sessizce kapanabiliyor</h3>
+        <span class="pill critical">Kritik</span>
+      </div>
+      <p>Uygulama tamamen kapalıyken bir push bildirime (madde eklendi/tamamlandı/atandı) dokunulduğunda, <code>fcm_provider.dart</code>'taki <code>getInitialMessage()</code>, Firestore stream'i ilk verisini getirmeden <code>ListDetailScreen</code>'e yönlendirebiliyor. <code>list_detail_screen.dart:118-124</code>'teki <code>matches.isEmpty</code> kontrolü bunu "liste silinmiş" sanıp kullanıcıyı otomatik geri atıyor.</p>
+      <p>Sonuç: kullanıcı bildirime dokunuyor, uygulama bir an açılıyor, sonra sessizce bir önceki ekrana düşüyor — hiçbir açıklama olmadan, sanki bildirim hiç işe yaramamış gibi. Tam da kullanıcıyı geri kazanmak için var olan an başarısız oluyor.</p>
+      <div class="fix"><b>Seamless olması için</b>"Liste bulunamadı" ile "liste henüz yüklenmedi" ayrılmalı — ikincisinde kısa bir yükleniyor durumu gösterilip stream'in ilk verisi beklenmeli, sadece gerçekten silinmişse geri dönülmeli.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-top">
+        <h3>Kalıcı/geçici kaldırıldı ama eski davranış tutarsız kaldı</h3>
+        <span class="pill warning">Orta</span>
+      </div>
+      <p>Tüm maddeler işaretlenince "listeyi sil?" sorusu hâlâ <code>list.type == ChecklistType.temporary</code>'e bağlı (<code>list_detail_screen.dart</code>, <code>onToggle</code>). Yeni oluşturulan listeler her zaman <code>permanent</code> (<code>create_list_screen.dart</code>), yani bu soruyu hiç görmüyor. Eski listelerden biri sorar, diğeri sormaz, yenileri hiç sormaz — nedeni hiçbir yerde açıklanmıyor.</p>
+      <div class="fix"><b>Seamless olması için</b>Bu, orta ölçekli görev listesindeki #10/#11/#12 (arşiv sistemi) ile birlikte tam olarak ele alınacak — şimdilik bilinen, kasıtlı bir ara durum.</div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 5</span><h2>Paylaşım</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Davet gönder, karşı taraf kabul etsin, an be an aynı listeye bakıyor olun.</p>
+    <p style="color:var(--ink-soft); font-size:13.8px;">Burada yapı sağlam: davet/kabul akışı, takma isim, çıkarma — hepsi anlık geri bildirimli. Gerçek bir kırılma noktası bulamadım.</p>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 6</span><h2>Bildirimler</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Bir şey değiştiğinde, platform fark etmeksizin haberin olsun.</p>
+
+    <div class="finding">
+      <div class="finding-top">
+        <h3>Web'de push bildirimi hiç çalışmıyor, sessizce</h3>
+        <span class="pill warning">Orta-kritik</span>
+      </div>
+      <p><code>fcm_provider.dart</code>'ta <code>getToken()</code> VAPID anahtarı olmadan çağrılıyor — web'de token alınamıyor, hiçbir hata da gösterilmiyor. Tarayıcıdan kullanan biri "neden bildirim gelmiyor" sorusuna asla cevap bulamaz. (Bilinen bir konu, daha önce de not edildi.)</p>
+      <div class="fix"><b>Seamless olması için</b>VAPID anahtarı eklenip web push aktive edilmeli, ya da en azından web'de "push bu platformda desteklenmiyor" gibi açık bir bilgilendirme gösterilmeli.</div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 7</span><h2>Ortak çalışma (devam eden kullanım)</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Biri madde eklerken/tamamlarken sen de an be an görüyorsun — hiç yenile'ye basmıyorsun.</p>
+    <p style="color:var(--ink-soft); font-size:13.8px;">Firestore'un canlı stream'i ve optimistic UI sayesinde bu gerçekten seamless — bir kırılma bulamadım.</p>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><span class="stage-eyebrow">Aşama 8</span><h2>Hesap yönetimi</h2></div>
+    <p class="ideal"><span class="tag">Seamless olan</span>Profilini yönet, gerekirse hesabını sil — geri dönüşü olmayan işlemde bile net bilgilendirilerek.</p>
+    <p style="color:var(--ink-soft); font-size:13.8px;">Hesap silme akışı (onay diyaloğu, gerekirse şifre tekrar isteme, hata yakalama) sağlam kurulmuş. Bir kırılma bulamadım.</p>
+  </section>
+
+  <div class="strengths">
+    <h3>Zaten sağlam olanlar</h3>
+    <ul>
+      <li>Hemen hemen her yazma işlemi <code>runGuarded</code> ile sarmalı — sessiz başarısızlık neredeyse hiç yok, kullanıcı her zaman bir şey görüyor.</li>
+      <li>Firestore'un yerel önbelleği sayesinde madde ekleme/işaretleme/sıralama anlık hissediyor — "kaydediliyor" beklemesi yok.</li>
+      <li>Bildirime tıklayınca doğru ekrana yönlendirme mantığı (davet / bağlantı / görev) doğru kurulmuş — sadece soğuk açılış zamanlamasında kırılıyor (bkz. Aşama 4).</li>
+      <li>Giriş/kayıt hata mesajları Türkçe ve anlaşılır — <code>authErrorMessage</code> Firebase'in İngilizce kodlarını düzgün çeviriyor.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Bu analiz mevcut koda dayanıyor (26 Ağustos 2026) — dosya/satır referansları zaman içinde kayabilir. Önceliklendirme önerisi: önce Aşama 2 ve 4'teki iki kritik bulgu (sistemik yükleniyor durumu + soğuk açılış bildirim kırılması), çünkü ikisi de birbirini besliyor ve düzeltmesi göreceli olarak küçük.</p>
+  </footer>
+
+</div>

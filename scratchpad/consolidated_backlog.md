@@ -1,0 +1,143 @@
+# CheckIt — Konsolide İş Listesi (30 Ağustos 2026)
+
+*Görev takip aracı bağlı değil, konuşma geçmişinden elle derlendi. Bir şey eksik/yanlışsa söyleyin, düzeltirim.*
+
+---
+
+## Öncelik değerlendirmesi (1 Ekim 2026)
+
+Backlog büyüdü, aşağıda ne gerçekten acil ne değil diye kaba bir sıralama:
+
+**Şu an aktif/pasif bekleyen** — hiçbir aksiyon gerekmiyor, zamanla kendi kendine ilerliyor:
+- Kapalı testin 14 günlük sayacının dolması, 13 test kullanıcısının opt-in durumunun korunması.
+
+**Üretime açılmadan önce yapılması önerilir (blocker değil ama değerli)**:
+- **Onboarding/karşılama akışı (madde 18, yeni)** — şu an hiç yok, kullanıcı direkt dashboard'a düşüyor. Testte zaten gerçek kafa karışıklığı yarattı (davet/bağlantı farkı, e-posta doğrulama) — üretime açılınca çok daha fazla deneyimsiz kullanıcı gelecek, bu kafa karışıklığı büyüyerek devam eder.
+- İki bekleyen küçük düzeltmenin (bağlantı kaldırma onayı, e-posta doğrulama hata mesajı) bir sonraki sürümle deploy edilmesi — kod zaten hazır.
+
+**Üretime çıktıktan sonraya bırakılabilir (acil değil)**:
+- **Gerçek ücretli abonelik satın alma akışı / Play Billing (madde 19, yeni + madde 15'in kalanı)** — uygulama şu an ücretsiz yayınlanıyor, gelir olmadan da üretime çıkılabilir; ertelemek bir şey kaybettirmiyor, sadece parayı sonraya alıyorsun.
+- Apple Developer / App Store süreci — zaten "birkaç ay sonra" olarak planlanmıştı, bulut Mac servisi kararı bunu değiştirmiyor.
+- Refactoring (madde 12, 13), düşük öncelikli güvenlik sertleştirmesi (madde 14), küfür/moderasyon filtresi (madde 8b), AI Faz 2 (madde 17), teknik envanter/rapor (madde 10, 11) — hiçbiri kullanıcı deneyimini şu an etkilemiyor.
+
+---
+
+## Bir sonraki sürüme kadar bekleyen (kod hazır, henüz deploy edilmedi)
+
+- **Onboarding bilgi kutuları (madde 18)** (7 Ekim 2026) — kullanıcı "bilgi kutuları yeterli" dedi, tam tur yapılmadı. Dashboard'a kapatılabilir "CheckIt'e hoş geldiniz" kartı eklendi (3 ipucu: yapay zeka ile oluştur, paylaşım/davet, e-posta doğrulama; kapatılınca `shared_preferences` ile hesap bazında hatırlanır — `welcome_tips_provider.dart`, `welcome_tips_card.dart`). "Davetlerim" ekranına davet/bağlantı farkını ve doğrulanmış e-posta şartını anlatan bilgi bandı eklendi. Paylaş ve Bağlantılar ekranlarındaki mevcut bilgi bandı metinleri netleştirildi (davet edilenin aynı e-postayla hesabı olmalı; bağlantı isteğe bağlı kısayol). TR+EN, `flutter analyze` temiz, **telefonda/web'de görsel kontrol henüz yapılmadı**.
+
+- **Bağlantı kaldırma onay diyaloğu** (23 Eylül 2026) — kullanıcı bulgusu: "Bağlantılarım" ekranında bir bağlantının yanındaki X'e yanlışlıkla basmak, hiçbir onay istemeden bağlantıyı anında siliyordu. `connections_screen.dart`'a `deleteListConfirm`/`leaveListConfirm` ile aynı desende (`AlertDialog`, Vazgeç/Kaldır) bir `_confirmRemove()` eklendi, sadece kabul edilmiş ("Bağlantılarım") listesindeki kaldır butonuna bağlandı (bekleyen istek iptali ve gelen istek reddi kasıtlı olarak değişmedi — onlar zaten kurulmuş bir ilişkiyi bozmuyor). Yeni l10n anahtarları: `removeConnectionTitle`, `removeConnectionConfirm`, `removeConnectionAction` (TR+EN). `flutter analyze` temiz. **Deploy yöntemi henüz kullanıcıyla netleşmedi** (kendi telefonuna direkt APK mi, yoksa Play Console'a yeni kapalı test sürümü mü — ikinci seçenekte aşağıdaki email-doğrulama düzeltmesiyle aynı sürüme dahil edilebilir).
+- **Davet kabul etme: e-posta doğrulanmamışsa net hata mesajı** (21 Eylül 2026) — kapalı test sırasında bulundu: yeşil "kabul et" tuşu, e-postası doğrulanmamış kullanıcılar için sessizce genel bir "yetkiniz yok" hatası veriyordu (kırmızı "reddet" çalışıyordu, çünkü Firestore kuralı sadece kabul etme için doğrulanmış e-posta şartı koşuyor — bilinçli bir güvenlik önlemi, değişmedi). Artık `acceptInvite()` önce istemci tarafında kontrol ediyor, net bir mesaj gösteriyor ("E-postanızı doğrulamadan..."). **Kod tamam, `flutter analyze` temiz, ama henüz yeni bir sürüm olarak Play Console'a gönderilmedi** — kapalı testin 14 günlük sayacını bölmemek için bir sonraki doğal güncellemeye/toplu değişiklik grubuna bırakıldı. Asıl engel (doğrulama şartı) zaten sunucu tarafında aktif, kullanıcı e-postasını doğrularsa kabul etme şu anki sürümde de çalışıyor — bu sadece hata mesajını iyileştiriyor.
+
+---
+
+## Store / yayına hazırlık
+
+1. ~~Android release imzalama anahtarı (keystore) oluşturma~~ — **tamamlandı (13 Eylül 2026)**: `android/app/checkit-upload-key.jks` oluşturuldu, `android/key.properties` üzerinden Gradle'a bağlandı, release APK gerçek imzayla derlendiği `apksigner` ile doğrulandı (CN=CheckIt). **Kullanıcı bu iki dosyayı proje klasörü dışında yedeklemeli** — kaybolursa Play Store'da uygulama bir daha güncellenemez.
+2. ~~Google Play Console hesabı açma~~ — **onaylandı (20 Eylül 2026)**. Apple Developer hesabı hâlâ ayrı, birkaç ay sonraki iş.
+   - **Paket adı değişikliği (20 Eylül 2026)**: `com.checkit.checkit` Play Store'da başka bir geliştirici tarafından zaten kullanılıyordu, **`com.velanalytics.checkit`**'e geçildi. Firebase'de yeni bir Android app kaydedildi (eski kayıt Firebase Console'da duruyor, artık kullanılmıyor), `firebase_options.dart`, `android/app/build.gradle.kts` (namespace+applicationId), `MainActivity.kt`'nin paket klasörü, `google-services.json` güncellendi. Yeni paket adıyla gerçek keystore'la imzalı bir `.aab` derlendi ve doğrulandı (`build/app/outputs/bundle/release/app-release.aab`).
+   - Uygulama Play Console'da oluşturuldu: "Ücretsiz" (Ücretli DEĞİL — abonelik modeli in-app purchase, uygulamanın kendisi bedava), Uygulama adı (EN) "CheckIt - Shared Lists".
+   - Kurulum kontrol listesi ilerliyor: Gizlilik Politikası linki (`checkit-legal-policy`) eklendi, Oturum açma bilgileri (`gulsen.altunc@gmail.com` test hesabı, "Test account" adıyla) eklendi, İçerik Derecelendirmesi anketi tamamlandı (12+/Teen/PEGI-PG civarı, "Kullanıcı Etkileşimi" ve online/AI içerik doğru işaretlendi).
+   - **Kalan kalemler**: Hedef Kitle, Veri Güvenliği formu (taslak hazır, `data_safety_form_draft.md`), Reklam beyanı (Hayır), Mağaza Girişi (metin+görseller hazır, yüklenecek), sonra Kapalı Test'e AAB yükleme + 12 test kullanıcısı.
+   - **Not (20 Eylül)**: İçerik derecelendirme anketinde "kullanıcıların dijital ürün satın almasına izin veriyor mu" sorusuna şu an doğru şekilde "Hayır" dendi (Play Billing henüz canlı değil) — **Play Billing devreye girince bu anket yeniden açılıp "Evet"e çevrilmeli**, aksi halde mağazada "uygulama içi satın alma" etiketi eksik kalır (politika riski).
+3. ~~Gizlilik Politikası/Kullanım Şartları'nı canlı bir web adresinde yayınlama~~ — **tamamlandı (15 Eylül 2026)**: kullanıcının kendi web sitesine (velanalytics.com) eklendi, doğrulandı, canlıda:
+   - TR: https://www.velanalytics.com/checkit-gizlilik-politikasi
+   - EN: https://www.velanalytics.com/checkit-legal-policy
+4. ~~Play Store Veri Güvenliği formu~~ — **taslak hazır (20 Eylül 2026)**: `scratchpad/data_safety_form_draft.md` — e-posta, liste içeriği, FCM cihaz kimliği; Console'a girilmesi kaldı. App Store Gizlilik Etiketi hâlâ ayrı bir iş (Apple hesabı açılınca).
+5. ~~Gerçek destek e-postası kurulumu~~ — **tamamlandı (15 Eylül 2026)**: kullanıcının kendi adresi kullanılıyor — info@velanalytics.com (kod içindeki `support@checkitapp.com` placeholder'ı da güncellendi: `privacy_policy_screen.dart`, `terms_of_service_screen.dart`)
+6. Store tanıtım metni ve ekran görüntüleri — **tamamlandı (16 Eylül 2026)**: metin `scratchpad/store_listing_draft.md`'de (App Name "CheckIt - Shared Lists"/"CheckIt - Paylaşımlı Listeler", Apple Subtitle/Promotional Text, Play Store kısa+uzun açıklama, TR+EN, karakter sınırları doğrulandı). 12 ekran görüntüsü çekildi (6 TR + 6 EN — ana sayfa, yapay zeka akışı, paylaşımlı/atanmış liste, alt başlıklı gruplama), durum çubuğu (saat/pil) kırpılıp temizlendi: `store-ekran-goruntuleri/temiz/`. Alt gezinme çubuğu bilinçli olarak kırpılmadı, istenirse sonra eklenir.
+7. Davet e-postası gönderimi (e-posta servisi kurulumu gerekiyor — şu an davetler sadece push/uygulama içi)
+   - **7b. (23 Eylül 2026'da gündeme geldi) Davet edilen kişide CheckIt yoksa uyarı** — kapalı test sırasında kullanıcı fark etti: davet edilen kişi CheckIt kullanmıyorsa hiçbir proaktif bildirim gitmiyor (push zaten atlanıyor, kayıtlı token yok), davet Firestore'da sessizce bekliyor, kişi aynı e-postayla kaydolursa otomatik beliriyor ama bu arada davet edenin bundan haberi yok. İki seçenek konuşuldu: (a) SendGrid altyapısını kullanıp otomatik e-posta gönderme (tam çözüm, "Davet e-postası" — madde 7 ile aynı iş) — Play Store linki üretime çıkana kadar kapalı test opt-in linkiyle başlatılabilir; (b) daha hafif: davet edilen kişide hesap var mı diye kontrol edip yoksa davet edene uygulama içi net bir uyarı göstermek. **Kullanıcı (b)'yi ilk adım olarak seçti, ama "şimdilik backlog'a alalım" dedi — implementasyon başlamadı.** Çıkarılan implementasyon planı (bir sonraki sefer doğrudan uygulanabilir):
+     1. `functions/index.js`: yeni `checkAccountExists` callable — auth gerektirir, `{email}` alır, `users` koleksiyonunda `email` alanına göre sorgu yapar (`sendPushIfEnabled`'daki sorguyla aynı desen), `{exists: bool}` döner.
+     2. `lib/data/invites_provider.dart`: bu callable'ı çağıran bir `hasAccount(email)` metodu (`ai_list_generator.dart`'taki `httpsCallable` deseniyle aynı).
+     3. `lib/features/sharing/share_screen.dart`: `_invite()` başarıyla davet oluşturduktan sonra bu kontrolü yapıp, hesap yoksa net bir uyarı göstermek (örn. "X henüz CheckIt kullanmıyor. Daveti görebilmesi için uygulamayı indirip bu e-posta ile giriş yapması gerekiyor.")
+     4. TR/EN l10n string'leri eklenip `flutter gen-l10n` çalıştırılacak.
+     5. `firebase deploy --only functions:checkAccountExists`, gerçek davetle test.
+7c. (23 Eylül 2026'da gündeme geldi) Bildirimlerin gereksiz gitmesi — iki ayrı iyileştirme konuşuldu, ikisi de backloga alındı (uygulanmadı):
+   - **Tiklenebilir olmayan (`isCheckable: false`) listelerde madde ekleme/tamamlama bildirimi hiç gitmesin.** Küçük değişiklik: `functions/index.js`'deki `onListUpdated` zaten liste dokümanından `isCheckable`'ı okuyabiliyor, push'lardan önce bir kontrol eklemek yeterli.
+   - **Liste bazında tek bir "bildirim al/alma" switch'i** (kullanıcı bunu seçti — liste-geneli, owner ayarlar, herkesi etkiler; kişi bazlı "sessize alma" değil). Mevcut `isCheckable`/`allowRating`/`allowDueDates`/`allowNotes` desenine birebir uyuyor: `Checklist` modeline yeni bir `notificationsEnabled` (bool, varsayılan true) alanı, liste oluşturma/düzenleme ekranına bir switch, Cloud Functions'ta push göndermeden önce bu alanı kontrol eden bir satır. Yeni altyapı gerekmiyor, düşük karmaşıklık.
+8. Farklı cihaz/ekran boyutlarında test
+8b. (düşük öncelik, isteğe bağlı) Serbest metin alanlarına (madde/not) küfür/uygunsuz içerik filtresi eklemek — 20 Eylül'de içerik derecelendirmesi sırasında gündeme geldi, uygulama yayınlanıp kullanıcı geri bildirimi geldikten sonra değerlendirilecek. Eklenirse Play Console'daki İçerik Derecelendirmesi anketi yeniden gönderilip potansiyel olarak daha düşük bir yaş derecelendirmesi alınabilir.
+
+---
+
+## Bugünkü listeden kalanlar
+
+9. ~~Kategori isimleri ve alt önerileri detaylandırılacak~~ — **iptal edildi**, önerilen madde özelliği tamamen kaldırıldı (i18n sırasında karar verildi, kategori artık sadece ikon seçimi için kullanılıyor)
+10. Kullanıcı verilerinin nerede/nasıl biriktiği, saklandığı ve güvenliği için kapsamlı/yazılı bir rapor — dar kapsamlı denetimde Firestore kuralları, secret taraması, hesap silme akışı kontrol edildi (temiz, 1 bug bulunup düzeltildi) ama yazılı rapor yok
+11. Uygulamada kullanılan tüm teknik/teknik olmayan bileşenlerin (kütüphane, servis, paket) listesi ve nerede kullanıldıkları çıkarılacak
+
+---
+
+## Refactoring
+
+12. `ChecklistItem.copyWith`'in tüm alanları (note, dueDate, subheading) kapsayacak şekilde genişletilmesi — şu an `lists_provider.dart` içinde 5-6 metod maddeyi elle yeniden yazıyor
+13. `list_detail_screen.dart`'ın bölünmesi — dosya büyüdü, çok sayıda private widget/dialog barındırıyor
+
+---
+
+## Güvenlik
+
+14. (düşük öncelik) `invites`/`connections` koleksiyonlarında `lists`'teki gibi bir boyut/şekil doğrulaması yok — en kötü ihtimalle aşırı büyük doküman yazılabilir, yetkisiz erişim riski değil
+
+14b. ~~`firestore.rules` dosyasının TAMAMININ satır satır güvenlik taraması~~ — **tamamlandı ve deploy edildi (18-19 Eylül 2026).** Bulunan ve düzeltilen gerçek açıklar:
+    - Liste sahibi artık `sharedWith`'e doğrudan (davet akışını atlayarak) kimseyi ekleyemiyor — hem `create` hem `update` kuralına "sadece küçülebilir / boş başlar" kısıtı eklendi.
+    - "Listeden ayrıl" ve "davet kabul et" kurallarına `new ⊆ old` / `old ⊆ new` kontrolü eklendi — biri "ayrılıyorum"/"kabul ediyorum" derken aynı anda başka birini çıkarıp yerine yabancı biri sokamıyor artık.
+    - `config/appConfig` için okuma kuralı eklendi (yoksa `subscription_provider.dart` sessizce hep varsayılana düşüyordu — 18 Eylül'ün kendi hatası, aynı gün fark edilip düzeltildi).
+    - `lastModifiedBy` artık sadece kendi e-postan olabilir.
+    - Kullanılmayan `addCollaborator()` fonksiyonu silindi.
+    - **19 Eylül'de web'de uçtan uca test sırasında bulunan ikinci bir gerçek bug**: yeni "sadece sharedWith değişebilir" kısıtı, self-leave'i tamamen kırmıştı — `removeCollaborator()` kendi atamasını temizlemek için `items`'ı da gönderiyordu, atanmış madde olmasa bile Firestore'un diff'i bunu "değişti" sayabiliyordu. Kural artık `items`'ın da değişmesine izin veriyor (paylaşımcılar zaten items'ı serbestçe değiştirebildiği için yeni bir yetki açığı değil), client tarafında da `removeCollaborator()` atanmış madde yoksa `items`'ı hiç göndermiyor artık. Gerçek hesaplarla (owner-edit, self-leave) web'de test edildi, doğrulandı.
+    - Test sırasında yanlışlıkla kullanıcının kendi gerçek hesabı (`gulaslihan@gmail.com`) eski bir test listesinden (`London Trip`) çıkarıldı — önemsiz/eski test verisi olduğu için geri eklenmedi, kullanıcı onayıyla.
+
+---
+
+## Büyük
+
+15. Ücretli abonelik modeli — **spesifikasyon netleşti (18 Eylül 2026), implementasyona başlanacak (sıradaki iş):**
+    - **Seçilen model (tamamen basitleştirilmiş)**: Davetli/organik ayrımı yok, deneme süresi yok, manuel/AI liste ayrımı da yok (18 Eylül'de kaldırıldı — kullanıcı "yarımı kaldıralım, herhangi bir liste olsun" dedi). Tek kural: **toplam 5 liste ücretsiz** (nasıl oluşturulduğu fark etmez), 6. listeden itibaren abonelik gerekir. Paylaşılan listeler her zaman sınırsız ve ücretsiz.
+    - **Kota kalıcıdır**: aktif liste sayısına değil, bugüne kadar oluşturulan TOPLAM sayıya göre hesaplanır (`createdListCount`, hiç azalmaz) — liste silinse bile hak geri gelmez, suistimali önlemek için.
+    - **Free kota bitince**: mevcut listelere erişim/düzenleme/paylaşım kesintisiz devam eder, sadece YENİ liste oluşturma paywall'a takılır.
+    - **Premium**: sınırsız manuel liste + günde max 5 AI liste (mevcut `AI_DAILY_LIMIT` zaten bunu karşılıyor, değişmeyecek — bu sayaç herkes için zaten vardı, abonelikten bağımsız kötüye kullanım koruması).
+    - **Abonelik biterse**: Free'ye döner, mevcut listeler kalır, ama toplam sayı zaten 5'i geçtiyse yeni liste oluşturamaz (yeniden abone olana kadar).
+    - **Config (uygulama güncellemesi gerektirmeden değiştirilebilir)**: `freeTotalListLimit=5` (+ istenirse `premiumDailyAiListLimit=5`) — yeni bir Firestore `config/appConfig` dokümanında tutulacak, rule ve client ikisi de oradan okuyacak, eksikse varsayılana (5) düşecek.
+    - **Kritik güvenlik notu (18 Eylül'de tespit edildi, implementasyonun parçası)**: şu an `firestore.rules`'ta `users/{uid}` dokümanı sahibine tamamen açık (`allow read, write`) — yani teknik bir kullanıcı kendi `subscriptionActive`'ini elle `true` yapıp bedavaya Premium alabilir, ya da `createdListCount`'u sıfırlayabilir. Bu implementasyonun parçası olarak `users/{uid}` kuralı alan bazlı kilitlenecek: `language`/bildirim tercihleri gibi mevcut alanlar client'a açık kalacak, sayaç alanları sadece +1 artışla (liste oluşturmayla aynı batch'te) değiştirilebilecek, `subscriptionActive` ve mevcut AI günlük sayaçları (`aiGenerationsDate/Count`) client'tan tamamen kapatılacak (bu ikincisi zaten önceden de açıktı, fark edilmemiş bir gap'ti, bu iş sırasında düzeltilecek).
+    - **Ayrıca planlandı, abonelik işinin hemen ardından**: `firestore.rules` dosyasının TAMAMININ (`lists`/`invites`/`connections`/`users`/yeni `config`) satır satır bir güvenlik taraması — kullanıcı bunu özellikle istedi ("uygulamanın bütününü düşününce" tüm bu tarz açıkları bulduk mu diye sordu), şimdiye kadarki denetimlerin parça parça/reaktif olduğu, tam kapsamlı olmadığı kendisine açıkça söylendi.
+    - **Sıra**: önce Google Play (Play Billing), Apple birkaç ay sonra. Play Console'un "12 test kullanıcısı" şartı bu modelle çakışmıyor — test kullanıcılar normal Free kullanıcı gibi kullanır, gerçek satın alma denemesi gerekirse Play Console'un "Lisans Test Kullanıcıları" mekanizması kullanılacak (ücretsiz test satın alma).
+    - **Kota/paywall iskeleti tamamlandı ve deploy edildi (18 Eylül 2026)**: `firestore.rules` (users alan bazlı kilitleme + lists create'te `canCreateList()`/`getAfter()` ile eşleşmeli sayaç kontrolü), `lists_provider.dart` (createList/duplicateList artık liste+sayaç artırımını tek Firestore batch'inde yapıyor), yeni `lib/data/subscription_provider.dart`, yeni `lib/features/subscription/paywall_sheet.dart` (bilgilendirme amaçlı, "Premium yakında" — gerçek satın alma yok), dashboard'daki "+" butonu + create_list_screen (hem manuel gönder hem AI prompt açma) + edit_list_sheet'teki "Listeyi Kopyala" paywall'a bağlandı. Cloud Function `generateListWithAI`'a da erken kota kontrolü + `config/appConfig`'ten okunan config-driven günlük AI limiti eklendi. `firebase deploy --only firestore:rules,functions:generateListWithAI` başarıyla tamamlandı, `flutter analyze` temiz.
+    - **Uçtan uca web'de test edildi ve doğrulandı (18 Eylül 2026)**: `gulsen.altunc@gmail.com` test hesabıyla (`flutter build web --release` + statik sunucu), 5 liste art arda oluşturuldu, 6.'da hem dashboard "+" butonunda hem "Listeyi Kopyala"da paywall doğru çıktı, kota dolduktan sonra mevcut bir listede madde tikleme sorunsuz çalıştı (mevcut içerik kilitlenmiyor, sadece yeni oluşturma). Test amaçlı `.claude/launch.json`'a `checkit-web`/`checkit-web-static` dev server konfigleri eklendi (kalıcı, tekrar test gerekirse hazır).
+    - **Kalan iş**: `config/appConfig` Firestore dokümanının Console'dan elle eklenmesi (opsiyonel — eklenmezse sistem zaten varsayılan 5/5'e düşüyor, ama limiti değiştirebilmek için gerekiyor): koleksiyon `config`, doküman kimliği `appConfig`, alanlar `freeTotalListLimit` (number, 5) ve istersen `premiumDailyAiListLimit` (number, 5). Play Billing'in kendisi (satın alma akışı + makbuz doğrulama + RTDN) ayrı, çok daha büyük bir sonraki iş — henüz başlanmadı.
+16. i18n devamı: Cloud Functions'taki bilingual push metinleri **deploy edildi** (30 Ağustos 2026, 5 fonksiyon da güncellendi). Native platform ayarları (iOS `CFBundleLocalizations`, Android `locales_config.xml`) APK ile test edildi, genel olarak iyi durumda.
+17. Yapay zeka ile liste oluşturma — **Faz 2**: gerçek zamanlı/güncel etkinlik önerisi (örn. Roma'da o tarihlerde olan sanat etkinlikleri) — web arama veya ayrı bir etkinlik/turizm API'si entegrasyonu gerektiriyor, Faz 1'den (13 Eylül 2026'da tamamlandı) sonraya bilinçli olarak ertelendi
+18. (1 Ekim 2026'da gündeme geldi) **Onboarding/karşılama akışı** — kod taramasıyla doğrulandı: hiç yok, `app.dart`'taki `_AuthGate` kayıt/girişten sonra direkt dashboard'a atıyor. Yeni kullanıcıya "Yapay Zeka ile Oluştur" nedir, "Bağlantılar" ile "Davet" farkı ne, paylaşım nasıl çalışır gibi hiçbir tanıtım yok. 23 Eylül'de konuşulan "ekran başı bilgi kutusu" fikri (madde 7c civarı, `share_screen.dart`'taki `shareInfoBanner` deseni) bunun hafif bir versiyonu sayılabilir — tam bir adım adım tur mu, yoksa birkaç ekrana serpiştirilmiş bilgi kutusu mu olacağına henüz karar verilmedi.
+19. (1 Ekim 2026'da gündeme geldi) **Gerçek ücretli abonelik satın alma ekranları** — `paywall_sheet.dart` şu an sadece bilgilendirme ("Premium çok yakında geliyor"), gerçek bir satın alma ekranı (plan seçimi, fiyat, ödeme akışı, "satın alımları geri yükle") yok. Bu, madde 15'te zaten "kalan iş" olarak not edilen Play Billing'in (satın alma akışı + makbuz doğrulama + RTDN) kullanıcı arayüzü tarafı — ayrı bir madde olarak burada da işaretlendi çünkü Merchant hesabı kurulumuna bağlı, henüz başlanmadı.
+
+---
+
+## Tamamlanıp deploy edilenler (özet, kronolojik)
+
+- Sağlamlaştırma batch'i: karakter sınırları, Firestore şekil doğrulaması, tamamlanma push'unda gecikme/geri-alma koruması, sadece atanan kişinin maddeyi tamamlayabilmesi
+- Orta ölçekli liste özellikleri: çoklu seçip sürükle-bırak, listeler arası taşıma/kopyalama, açılır/kapanır alt başlıklar (sürükle-bırak sıralamayla), kalıcı/geçici tipinin kaldırılıp arşiv sistemiyle değiştirilmesi + aylık arşiv temizlik hatırlatması
+- Dar kapsamlı code audit'te bulunan bug'lar: hesap silmede `subheading` kaybı, Cloud Functions'ta tek eskimiş FCM token'ının tüm bildirim grubunu bozması
+- `_AssigneeFilterBar` görünmeyen chip'ler hatası (kök neden: `IntrinsicWidth` eksikliği)
+- Üçüncü logo/ikon/splash güncellemesi (yeni tasarım, tüm platformlara uygulandı)
+- Tüm kullanıcıya gösterilen uyarı mesajlarının envanteri çıkarıldı, 2 ham hata sızıntısı (`auth_provider.dart`, `app.dart`) düzeltildi
+- Ana sayfa: açılır/kapanır bölümler, arşiv rozeti kaldırıldı, boş alan için jenerik görsel+metin dolgusu
+- Arşivde arama eklendi
+- Profil çıkışında navigasyon hatası düzeltildi; paylaşılan listeden "Ayrıl" (non-owner) butonu düzeltildi
+- Madde tamamlanmayan kişide "listede kalsın/sıfırla" diyaloğu, sahip olmayanlar için bilgilendirici tek butona çevrildi
+- Madde tamamlama "canlılık" geri bildirimi: haptic + checkbox pop animasyonu + tamamlama sesi (önce `SystemSound.play()` denendi, telefon geneli "dokunma sesleri" ayarına bağlı olduğu ve istenmeyen yan etkiler yarattığı görülünce kendi ürettiğimiz kısa "tık" sesine geçildi — `audioplayers` paketiyle, ayardan bağımsız)
+- Push bildirimlerinde ses: davet alma + "davet kabul edildi" bildirimi (daha önce hiç yoktu) artık sesli, Cloud Functions deploy edildi
+- Splash logosu web'de test edildi — rozet oranı düzeldi, wordmark web'e özgü bir taşma sorunu gösterdi (native Android'i yansıtmıyor olabilir, düşük öncelik)
+- **İngilizce dil desteği (i18n) — tamamlandı:** `flutter_localizations`/ARB altyapısı, ~25 dosyanın tamamının çevirisi (kimlik doğrulama, hata mesajları, paylaşım/bağlantı/davet, profil, bildirim ayarları, ana sayfa, arşiv, liste oluşturma/düzenleme/detay), Profil > Dil seçici (sistem dili/Türkçe/İngilizce + iOS'ta sistem ayarlarına yönlendirme), Gizlilik Politikası/Kullanım Şartları'nın İngilizce çevirisi, kategori önerilen-madde özelliğinin kaldırılması (kategori artık sadece ikon için, 130 maddelik çeviri yükü ortadan kalktı), Cloud Functions push metinlerinin kullanıcının `users/{uid}.language` alanına göre bilingual hale getirilmesi (**deploy edildi**, 5 fonksiyon güncellendi), iOS/Android manifest dosyalarına dil desteği bildirimi eklendi, gerçek cihazda test edildi. `flutter analyze` boyunca temiz.
+- **Yapay zeka ile liste oluşturma (Faz 1) — tamamlandı ve canlıda (13 Eylül 2026):** Liste Oluştur ekranına "Yapay Zeka ile Oluştur" butonu eklendi — serbest metin açıklamadan (örn. "Roma'ya gideceğim, sanatla ilgileniyorum") başlık, kategori, tiklenebilir/yıldız/tarih-saat/not ayarları ve alt başlıklı madde listesi üretiyor. Sunucu tarafında yeni bir Cloud Function (`generateListWithAI`), Gemini 2.5 Flash'ı Vertex AI üzerinden çağırıyor (ayrı API anahtarı yok, Firebase projesinin kimliğiyle çalışıyor), günde 5 istekle sınırlı (kullanıcı başına `users/{uid}` üzerinde sunucu tarafında tutuluyor). Çıktı dili kullanıcının `language` tercihine göre TR/EN. Devreye alırken projede ilk kez Vertex AI kullanıldığı için "Agent Platform API" etkinleştirilmesi gerekti (tek seferlik, kullanıcı tarafından yapıldı) — gerçek cihazda test edilip doğrulandı. Gerçek zamanlı etkinlik önerisi (Faz 2) bilinçli olarak sonraya bırakıldı.
+- **13 Eylül 2026 canlı test geri bildirim paketi (9 madde) — tamamlandı, gerçek cihazda doğrulandı (14 Eylül 2026):**
+  1. Yapay zeka istem kutusuna sesli komut eklendi.
+  2. Manuel liste oluşturmada "Liste adı" alanına da sesli komut eklendi.
+  3. "Yapay Zeka ile Oluştur" butonu dolgulu/vurgulu tasarıma çevrildi (mercan/somon vurgu rengi).
+  4. Splash ekranındaki "CheckIt" yazısı (wordmark) boyutu düzeltildi — ilk denemede 6 kat küçültüldü (çok küçük oldu), sonra 2 kat büyütülüp (net 3 kat küçültülmüş oldu) dengeye oturdu. **Not:** orijinal yüksek çözünürlüklü wordmark kaynağı yedeklenmeden üzerine yazılmıştı, şu anki `assets/logo/checkit-wordmark.png` bu ayarlamalardan geçmiş (hafif kalite kaybı olası) bir dosya — orijinali aranıp bulunamadı (Downloads'taki logo zip'lerinde sadece mark/appicon SVG'leri var, ayrı wordmark yok).
+  5. Sesli komut widget'ı (`VoiceInputButton`) yeniden yazıldı — artık mikrofon yeniden basıldığında metnin üstüne yazmak yerine kaldığı yerden devam ediyor (controller tabanlı, tüm kullanım yerlerinde).
+  6. Alt başlıklı (gruplu) liste görünümünde sürükle-bırak sırasında ekran artık kenara yaklaşınca otomatik kayıyor — özel pointer-takip + timer tabanlı otomatik kaydırma eklendi (düz/gruplandırılmamış liste zaten Flutter'ın kendi otomatik kaydırmasına sahipti, sorun sadece gruplu görünümdeydi).
+  7. Firestore çevrimdışı kalıcılığı `main.dart`'ta artık açıkça etkinleştiriliyor (`Settings(persistenceEnabled: true)`) — mobilde zaten varsayılan açıktı, web'de kapalıydı.
+  8. Madde taşıma/kopyalama liste seçici artık alfabetik sıralı.
+  9. Tamamlama sesi (`completion_sound.dart`) artık her çağrıda taze bir `AudioPlayer` kullanıyor (paylaşılan tek player'ın ilk çalıştan sonra bazı cihazlarda takılı kalması sorunu çözüldü).
+  Kullanıcı notu (14 Eylül 2026): splash'te "hâlâ gelişim alanı var ama şimdilik olmuş" — kabul edilebilir durumda, mükemmel değil, istenirse ileride tekrar bakılabilir.

@@ -3,22 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
-/// Rounded corners + soft shadows give the "hafif üç boyutlu" (soft 3D) feel
-/// used across cards, buttons and inputs.
+/// Flat surfaces with a thin charcoal "windowpane" outline (no drop shadows)
+/// — the boutique/crittall-grid look used across cards, buttons and inputs.
 class AppTheme {
   AppTheme._();
 
   static const double radiusSmall = 12;
   static const double radiusMedium = 16;
   static const double radiusLarge = 24;
-
-  static List<BoxShadow> softShadow = [
-    BoxShadow(
-      color: AppColors.primary.withValues(alpha: 0.08),
-      blurRadius: 20,
-      offset: const Offset(0, 8),
-    ),
-  ];
 
   static ThemeData get light {
     final base = ThemeData(
@@ -51,6 +43,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMedium),
+          side: const BorderSide(color: AppColors.cardBorder),
         ),
         margin: EdgeInsets.zero,
       ),

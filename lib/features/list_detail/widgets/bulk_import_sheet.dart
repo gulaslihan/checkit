@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BulkImportSheet extends StatefulWidget {
   final ValueChanged<List<String>> onImport;
@@ -28,6 +29,7 @@ class _BulkImportSheetState extends State<BulkImportSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -39,11 +41,11 @@ class _BulkImportSheetState extends State<BulkImportSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Yapıştırarak Toplu Ekle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(l10n.bulkImportTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
-          const Text(
-            'Notlarınızdan kopyaladığınız metni buraya yapıştırın — her satır ayrı bir madde olarak eklenir.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          Text(
+            l10n.bulkImportSubtitle,
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -51,8 +53,8 @@ class _BulkImportSheetState extends State<BulkImportSheet> {
             autofocus: true,
             minLines: 6,
             maxLines: 10,
-            decoration: const InputDecoration(
-              hintText: 'Süt\nEkmek\nYumurta\n...',
+            decoration: InputDecoration(
+              hintText: l10n.bulkImportHint,
               alignLabelWithHint: true,
             ),
           ),
@@ -61,7 +63,7 @@ class _BulkImportSheetState extends State<BulkImportSheet> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _submit,
-              child: const Text('Maddeleri Ekle'),
+              child: Text(l10n.addItemsButton),
             ),
           ),
         ],

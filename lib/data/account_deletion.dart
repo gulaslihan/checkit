@@ -3,14 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/utils/error_feedback.dart';
 import '../models/checklist_item.dart';
-import 'auth_provider.dart';
 import 'lists_provider.dart';
 
 class AccountDeletionResult {
   final bool needsReauth;
-  final String? error;
+  final AppErrorKind? errorKind;
 
-  const AccountDeletionResult({this.needsReauth = false, this.error});
+  const AccountDeletionResult({this.needsReauth = false, this.errorKind});
 }
 
 /// Deletes everything the signed-in user owns or is party to (their lists,
@@ -26,7 +25,7 @@ Future<AccountDeletionResult> deleteMyAccount() async {
   try {
     await _deleteOwnedData(uid: uid, email: email);
   } catch (e) {
-    return AccountDeletionResult(error: friendlyErrorMessage(e));
+    return AccountDeletionResult(errorKind: classifyError(e));
   }
 
   try {
@@ -36,7 +35,7 @@ Future<AccountDeletionResult> deleteMyAccount() async {
     if (e.code == 'requires-recent-login') {
       return const AccountDeletionResult(needsReauth: true);
     }
-    return AccountDeletionResult(error: authErrorMessage(e));
+    return AccountDeletionResult(errorKind: classifyAuthError(e));
   }
 }
 
@@ -71,6 +70,7 @@ Future<void> _deleteOwnedData({required String uid, required String? email}) asy
               rating: item.rating,
               note: item.note,
               dueDate: item.dueDate,
+              subheading: item.subheading,
             )
           else
             item,
@@ -113,17 +113,17 @@ Future<void> _deleteOwnedData({required String uid, required String? email}) asy
 /// Firestore cleanup already happened in [deleteMyAccount] — this just
 /// re-proves identity (Firebase requires a *recent* login for account
 /// deletion) and finishes deleting the Auth account.
-Future<String?> reauthenticateAndDeleteAccount(String password) async {
+Future<AppErrorKind?> reauthenticateAndDeleteAccount(String password) async {
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null || user.email == null) return 'Oturum bulunamadı.';
+  if (user == null || user.email == null) return AppErrorKind.noSession;
   try {
     final credential = EmailAuthProvider.credential(email: user.email!, password: password);
     await user.reauthenticateWithCredential(credential);
     await user.delete();
     return null;
   } on FirebaseAuthException catch (e) {
-    return authErrorMessage(e);
+    return classifyAuthError(e);
   } catch (e) {
-    return friendlyErrorMessage(e);
+    return classifyError(e);
   }
 }

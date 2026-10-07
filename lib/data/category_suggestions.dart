@@ -1,71 +1,27 @@
-/// Static starter-item suggestions shown when a category is picked while
-/// creating a list. Not AI-generated — fixed lists for the MVP.
+/// Fixed category list shown when creating/editing a list — used only to
+/// pick the list's icon (see category_icon.dart), not for filtering,
+/// grouping, or anything else. The Turkish string IS the stored value in
+/// Firestore's `category` field, so this list can't be reordered/renamed
+/// without a data migration — see categoryDisplayName() for the
+/// locale-aware label shown in the UI.
 const List<String> listCategories = [
-  'Alışveriş',
-  'Seyahat',
+  'Market Alışverişi',
+  'Kişisel Alışveriş',
   'Ev İşleri',
-  'Çocuk',
+  'Günlük Rutinler',
   'Sağlıklı Yaşam',
-  'İş',
+  'Antrenman Programı',
+  'Seyahat',
+  'Valiz',
+  'İş Seyahati',
+  'Piknik Hazırlığı',
   'Özel Günler',
+  'Davet',
+  'Doğum Günü Hazırlığı',
+  'Hediye Organizasyonu',
+  'Kitap Listesi',
+  'Film Listesi',
+  'Çocuk',
+  'İş',
   'Diğer',
 ];
-
-const Map<String, List<String>> categorySuggestions = {
-  'Alışveriş': [
-    'Süt',
-    'Ekmek',
-    'Yumurta',
-    'Peynir',
-    'Meyve',
-    'Sebze',
-    'Deterjan',
-    'Tuvalet kağıdı',
-  ],
-  'Seyahat': [
-    'Uçak/otobüs bileti',
-    'Otel rezervasyonu',
-    'Pasaport / Kimlik',
-    'Telefon şarj aleti',
-    'Güneş gözlüğü',
-    'Güneş kremi',
-    'Seyahat sigortası',
-    'İlaçlar',
-  ],
-  'Ev İşleri': [
-    'Bulaşık',
-    'Çöp',
-    'Toz alma',
-    'Cam silme',
-    'Çamaşır',
-    'Ütü',
-  ],
-  'Çocuk': [
-    'Bebek bezi',
-    'Mama',
-    'Aşı takibi',
-    'Okul malzemeleri',
-    'Kıyafet',
-    'Oyuncak',
-  ],
-  'Sağlıklı Yaşam': [
-    'Su içmek',
-    'Spor yapmak',
-    'Vitamin',
-    'Doktor randevusu',
-    'Uyku düzeni',
-  ],
-  'İş': [
-    'Toplantı notları',
-    'E-postaları yanıtla',
-    'Rapor hazırla',
-    'Faturaları öde',
-  ],
-  'Özel Günler': [
-    'Hediye al',
-    'Davetiye gönder',
-    'Pasta sipariş et',
-    'Mekan ayarla',
-    'Fotoğrafçı',
-  ],
-};

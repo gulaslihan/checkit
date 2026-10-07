@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares the app's supported languages so Android 13+ shows CheckIt in
+     Settings > System > Languages > App languages, the same per-app
+     language mechanism TickTick and other apps use. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="tr"/>
+    <locale android:name="en"/>
+</locale-config>

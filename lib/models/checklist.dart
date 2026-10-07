@@ -1,10 +1,8 @@
 import 'checklist_item.dart';
-import 'checklist_type.dart';
 
 class Checklist {
   final String id;
   final String title;
-  final ChecklistType type;
   final String? category;
   final List<ChecklistItem> items;
   final List<String> sharedWith;
@@ -15,8 +13,7 @@ class Checklist {
   final bool allowRating;
 
   /// When false, items have no checkbox at all — the list is purely for
-  /// keeping/ordering items (e.g. a reference list), and `type`'s
-  /// permanent/temporary tick behavior does not apply.
+  /// keeping/ordering items (e.g. a reference list).
   final bool isCheckable;
 
   /// When true, items can carry a due date/time and the list can be
@@ -35,10 +32,22 @@ class Checklist {
   /// the owner. Falls back to the raw email wherever unset.
   final Map<String, String> nicknames;
 
+  /// Archived lists are hidden from the dashboard and pending-items view but
+  /// stay fully intact — see the Arşiv screen. Set when a completed list is
+  /// archived instead of reset/deleted (see [ListsNotifier.archiveList]).
+  final bool archived;
+  final DateTime? archivedAt;
+
+  /// Display order for this list's sub-headings (see [ChecklistItem.subheading])
+  /// — a heading isn't a separate stored entity, just a label items carry, so
+  /// this is the only place its position is tracked. A newly-created heading
+  /// is prepended (see [ListsNotifier.setItemsSubheading]); drag-reordering
+  /// in list_detail_screen.dart writes this list directly.
+  final List<String> subheadingOrder;
+
   const Checklist({
     required this.id,
     required this.title,
-    required this.type,
     this.category,
     this.items = const [],
     this.sharedWith = const [],
@@ -49,6 +58,9 @@ class Checklist {
     this.ownerEmail,
     this.sortIndex = 0,
     this.nicknames = const {},
+    this.archived = false,
+    this.archivedAt,
+    this.subheadingOrder = const [],
   });
 
   int get completedCount => items.where((i) => i.isDone).length;
@@ -75,7 +87,6 @@ class Checklist {
     return Checklist(
       id: id,
       title: title ?? this.title,
-      type: type,
       category: category,
       items: items ?? this.items,
       sharedWith: sharedWith ?? this.sharedWith,
@@ -86,6 +97,9 @@ class Checklist {
       ownerEmail: ownerEmail,
       sortIndex: sortIndex,
       nicknames: nicknames ?? this.nicknames,
+      archived: archived,
+      archivedAt: archivedAt,
+      subheadingOrder: subheadingOrder,
     );
   }
 }

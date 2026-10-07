@@ -6,8 +6,13 @@
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>tr</string>
+			<string>en</string>
+		</array>
 		<key>CFBundleDisplayName</key>
-		<string>Checkit</string>
+		<string>CheckIt</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>

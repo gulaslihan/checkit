@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/utils/error_feedback.dart';
 import '../models/invite.dart';
 import 'auth_provider.dart';
 
@@ -57,14 +58,14 @@ final myInvitesProvider = StreamProvider<List<Invite>>((ref) {
 class InvitesNotifier {
   final _lists = FirebaseFirestore.instance.collection('lists');
 
-  Future<String?> sendInvite({required String listId, required String listTitle, required String recipientEmail}) async {
+  Future<AppErrorKind?> sendInvite({required String listId, required String listTitle, required String recipientEmail}) async {
     final email = recipientEmail.trim().toLowerCase();
     if (email.isEmpty) return null;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
 
     if (email == user.email?.toLowerCase()) {
-      return 'Kendinizi davet edemezsiniz.';
+      return AppErrorKind.cannotInviteSelf;
     }
 
     // No separate "does it already exist" read: the doc id is deterministic
@@ -89,7 +90,15 @@ class InvitesNotifier {
   /// Recipient accepts — grants real access and clears the invite in one
   /// atomic batch. No separate owner confirmation step: a genuine invite
   /// (proven via the deterministic doc id) is enough.
+  ///
+  /// The security rule for this write also requires a verified email (see
+  /// firestore.rules) — checked here first too, so an unverified user gets
+  /// a clear message instead of a generic "permission denied" once the
+  /// write itself is rejected.
   Future<void> acceptInvite(Invite invite) async {
+    if (FirebaseAuth.instance.currentUser?.emailVerified != true) {
+      throw const EmailNotVerifiedException();
+    }
     final batch = FirebaseFirestore.instance.batch();
     batch.update(_lists.doc(invite.listId), {
       'sharedWith': FieldValue.arrayUnion([invite.recipientEmail]),

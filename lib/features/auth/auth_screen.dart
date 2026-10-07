@@ -2,7 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../data/auth_provider.dart';
+import '../../core/utils/error_feedback.dart';
+import '../../l10n/app_localizations.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 
@@ -30,9 +31,10 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _resetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      setState(() => _errorText = 'Şifre sıfırlama bağlantısı gönderebilmemiz için önce e-postanızı yazın.');
+      setState(() => _errorText = l10n.resetPasswordEmailRequired);
       return;
     }
 
@@ -45,25 +47,26 @@ class _AuthScreenState extends State<AuthScreen> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$email adresine şifre sıfırlama bağlantısı gönderildi.')),
+          SnackBar(content: Text(l10n.resetPasswordSent(email))),
         );
       }
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorText = authErrorMessage(e));
+      setState(() => _errorText = localizedErrorMessage(context, classifyAuthError(e)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorText = 'E-posta ve şifre gerekli.');
+      setState(() => _errorText = l10n.emailPasswordRequired);
       return;
     }
     if (_isSignUp && !_acceptedTerms) {
-      setState(() => _errorText = 'Devam etmek için Gizlilik Politikası ve Kullanım Şartları\'nı kabul etmelisiniz.');
+      setState(() => _errorText = l10n.mustAcceptTerms);
       return;
     }
 
@@ -83,7 +86,7 @@ class _AuthScreenState extends State<AuthScreen> {
       // On success, authStateProvider picks up the change and AuthGate swaps screens
       // (to VerifyEmailScreen first, if emailVerified is still false).
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorText = authErrorMessage(e));
+      setState(() => _errorText = localizedErrorMessage(context, classifyAuthError(e)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -91,6 +94,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -99,15 +103,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 36),
-                ),
+                Image.asset('assets/logo/checkit-logo-mark.png', width: 72, height: 72),
                 const SizedBox(height: 16),
                 Text('CheckIt', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 24),
@@ -121,14 +117,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     children: [
                       Expanded(
                         child: _ModeTab(
-                          label: 'Giriş Yap',
+                          label: l10n.signInTab,
                           selected: !_isSignUp,
                           onTap: _isLoading ? null : () => setState(() { _isSignUp = false; _errorText = null; }),
                         ),
                       ),
                       Expanded(
                         child: _ModeTab(
-                          label: 'Kayıt Ol',
+                          label: l10n.signUpTab,
                           selected: _isSignUp,
                           onTap: _isLoading ? null : () => setState(() { _isSignUp = true; _errorText = null; }),
                         ),
@@ -140,14 +136,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'E-posta'),
+                  decoration: InputDecoration(labelText: l10n.emailLabel),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Şifre',
+                    labelText: l10n.passwordLabel,
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
                       color: AppColors.textSecondary,
@@ -163,7 +159,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: TextButton(
                       onPressed: _isLoading ? null : _resetPassword,
                       style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 32)),
-                      child: const Text('Şifremi unuttum', style: TextStyle(fontSize: 13)),
+                      child: Text(l10n.forgotPassword, style: const TextStyle(fontSize: 13)),
                     ),
                   ),
                 ],
@@ -180,26 +176,26 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            const Text('Okudum, kabul ediyorum:', style: TextStyle(fontSize: 12.5)),
+                            Text(l10n.acceptTermsPrefix, style: const TextStyle(fontSize: 12.5)),
                             const SizedBox(width: 4),
                             InkWell(
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
                               ),
-                              child: const Text(
-                                'Gizlilik Politikası',
-                                style: TextStyle(fontSize: 12.5, color: AppColors.primary, fontWeight: FontWeight.w600),
+                              child: Text(
+                                l10n.privacyPolicyTitle,
+                                style: const TextStyle(fontSize: 12.5, color: AppColors.primary, fontWeight: FontWeight.w600),
                               ),
                             ),
-                            const Text(' ve', style: TextStyle(fontSize: 12.5)),
+                            Text(l10n.andConnector, style: const TextStyle(fontSize: 12.5)),
                             const SizedBox(width: 4),
                             InkWell(
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
                               ),
-                              child: const Text(
-                                'Kullanım Şartları',
-                                style: TextStyle(fontSize: 12.5, color: AppColors.primary, fontWeight: FontWeight.w600),
+                              child: Text(
+                                l10n.termsOfServiceTitle,
+                                style: const TextStyle(fontSize: 12.5, color: AppColors.primary, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ],
@@ -223,7 +219,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : Text(_isSignUp ? 'Kayıt Ol' : 'Giriş Yap'),
+                        : Text(_isSignUp ? l10n.signUpTab : l10n.signInTab),
                   ),
                 ),
               ],

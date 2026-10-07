@@ -11,6 +11,7 @@ import '../../core/widgets/initials_avatar.dart';
 import '../../data/connections_provider.dart';
 import '../../data/invites_provider.dart';
 import '../../data/lists_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
 import '../../models/invite.dart';
 
@@ -34,10 +35,11 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   }
 
   Future<void> _invite(String listTitle) async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _controller.text.trim().toLowerCase();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Geçerli bir e-posta girin.')),
+        SnackBar(content: Text(l10n.emailInvalid)),
       );
       return;
     }
@@ -46,50 +48,52 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
         .any((i) => i.recipientEmail == email);
     if (alreadyInvited) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bu kişiye zaten davet gönderilmiş.')),
+        SnackBar(content: Text(l10n.alreadyInvited)),
       );
       return;
     }
 
     setState(() => _isSending = true);
-    String? error;
+    AppErrorKind? errorKind;
     try {
-      error = await ref
+      errorKind = await ref
           .read(invitesNotifierProvider)
           .sendInvite(listId: widget.listId, listTitle: listTitle, recipientEmail: email);
     } catch (e) {
-      error = friendlyErrorMessage(e);
+      errorKind = classifyError(e);
     }
     if (!mounted) return;
     setState(() => _isSending = false);
-    if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    if (errorKind != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizedErrorMessage(context, errorKind))));
     } else {
       _controller.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Davet gönderildi — $email kabul edince size haber gelecek.')),
+        SnackBar(content: Text(l10n.inviteSentToEmail(email))),
       );
     }
   }
 
   Future<void> _editNickname(Checklist list, String person) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: list.nicknames[person] ?? '');
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('$person için takma ad'),
+        title: Text(l10n.nicknameDialogTitle(person)),
         content: TextField(
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'ör. Halası'),
+          maxLength: 40,
+          decoration: InputDecoration(hintText: l10n.nicknameHint),
           onSubmitted: (v) => Navigator.of(dialogContext).pop(v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Vazgeç')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-            child: const Text('Kaydet'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -101,6 +105,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final lists = ref.watch(listsProvider);
     final matches = lists.where((l) => l.id == widget.listId);
     if (matches.isEmpty) {
@@ -118,7 +123,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('"${list.title}" Paylaş', overflow: TextOverflow.ellipsis),
+        title: Text(l10n.shareScreenTitle(list.title), overflow: TextOverflow.ellipsis),
         actions: const [HomeButton()],
       ),
       body: ListView(
@@ -130,14 +135,14 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
               color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.shield_outlined, color: AppColors.primary, size: 20),
-                SizedBox(width: 10),
+                const Icon(Icons.shield_outlined, color: AppColors.primary, size: 20),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Davet ettiğiniz kişi kabul edince listeye erişimi hemen açılır.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    l10n.shareInfoBanner,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
                   ),
                 ),
               ],
@@ -145,7 +150,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
           ),
           const SizedBox(height: 24),
           if (isOwner) ...[
-            const Text('E-posta ile Davet Et', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.inviteByEmailLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +159,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   child: TextField(
                     controller: _controller,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(hintText: 'ornek@eposta.com'),
+                    decoration: InputDecoration(hintText: l10n.emailHint),
                     onSubmitted: (_) => _invite(list.title),
                   ),
                 ),
@@ -167,13 +172,13 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Davet Et'),
+                      : Text(l10n.inviteButton),
                 ),
               ],
             ),
             if (quickPicks.isNotEmpty) ...[
               const SizedBox(height: 14),
-              const Text('Bağlantılarınızdan seçin', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text(l10n.quickPicksLabel, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -201,14 +206,14 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 20),
-                  SizedBox(width: 10),
+                  const Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 20),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Bu listeye yeni kişi davet etme yetkisi sadece listenin sahibinde.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      l10n.ownerOnlyInviteNotice,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -216,13 +221,13 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
             ),
           if (isOwner && invites.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Text('Bekleyen Davetler', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.pendingInvitesLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                boxShadow: AppTheme.softShadow,
+                border: Border.all(color: AppColors.cardBorder),
               ),
               child: Column(
                 children: [
@@ -233,7 +238,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
           ],
           const SizedBox(height: 24),
           Text(
-            'Bu listeyi görebilenler (${list.sharedWith.length + 1})',
+            l10n.peopleWhoCanSeeList(list.sharedWith.length + 1),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
@@ -241,32 +246,45 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              boxShadow: AppTheme.softShadow,
+              border: Border.all(color: AppColors.cardBorder),
             ),
             child: Column(
               children: [
                 ListTile(
-                  leading: InitialsAvatar(name: list.ownerEmail ?? '?'),
-                  title: Text(personLabel(list.ownerEmail ?? '?')),
-                  subtitle: const Text('Sahibi'),
+                  leading: InitialsAvatar(name: list.labelFor(list.ownerEmail ?? '?'), colorKey: list.ownerEmail),
+                  title: Text(listPersonLabel(context, list, list.ownerEmail ?? '?')),
+                  subtitle: Text(
+                    list.nicknames.containsKey(list.ownerEmail)
+                        ? l10n.ownerWithNickname(list.nicknames[list.ownerEmail] ?? '')
+                        : l10n.ownerLabel,
+                  ),
+                  trailing: isOwner
+                      ? IconButton(
+                          tooltip: l10n.editOwnNameTooltip,
+                          icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                          onPressed: () => _editNickname(list, list.ownerEmail ?? ''),
+                        )
+                      : null,
                 ),
                 for (final person in list.sharedWith)
                   ListTile(
                     leading: InitialsAvatar(name: list.labelFor(person), colorKey: person),
-                    title: Text(listPersonLabel(list, person)),
+                    title: Text(listPersonLabel(context, list, person)),
                     subtitle: list.nicknames.containsKey(person) ? Text(person) : null,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (isOwner)
                           IconButton(
-                            tooltip: 'Takma ad ver',
+                            tooltip: l10n.giveNicknameTooltip,
                             icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
                             onPressed: () => _editNickname(list, person),
                           ),
                         if (isOwner || person.toLowerCase() == myEmail.toLowerCase())
                           IconButton(
-                            tooltip: person.toLowerCase() == myEmail.toLowerCase() ? 'Listeden Ayrıl' : 'Çıkar',
+                            tooltip: person.toLowerCase() == myEmail.toLowerCase()
+                                ? l10n.leaveListTooltip
+                                : l10n.removeTooltip,
                             icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                             onPressed: () => runGuarded(
                               context,
@@ -292,14 +310,15 @@ class _InviteRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final notifier = ref.read(invitesNotifierProvider);
 
     return ListTile(
       leading: InitialsAvatar(name: invite.recipientEmail),
       title: Text(invite.recipientEmail),
-      subtitle: const Text('Kabul bekleniyor', style: TextStyle(color: AppColors.textSecondary)),
+      subtitle: Text(l10n.pendingAcceptance, style: const TextStyle(color: AppColors.textSecondary)),
       trailing: IconButton(
-        tooltip: 'İptal Et',
+        tooltip: l10n.cancelTooltip,
         icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
         onPressed: () => notifier.deleteInvite(invite.id),
       ),

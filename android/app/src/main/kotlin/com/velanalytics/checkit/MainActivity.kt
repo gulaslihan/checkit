@@ -1,4 +1,4 @@
-package com.checkit.checkit
+package com.velanalytics.checkit
 
 import io.flutter.embedding.android.FlutterActivity
 

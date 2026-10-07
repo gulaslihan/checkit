@@ -5,30 +5,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/error_feedback.dart';
+import '../../core/utils/list_search.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../../data/lists_provider.dart';
 import '../../data/notifications_provider.dart';
+import '../../data/subscription_provider.dart';
+import '../../data/welcome_tips_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
+import '../archive/archive_screen.dart';
 import '../create_list/create_list_screen.dart';
 import '../invites/my_invites_screen.dart';
 import '../list_detail/list_detail_screen.dart';
 import '../pending_items/pending_items_screen.dart';
 import '../profile/profile_screen.dart';
+import '../subscription/paywall_sheet.dart';
 import 'widgets/edit_list_sheet.dart';
 import 'widgets/list_card.dart';
 import 'widgets/list_search_bar.dart';
+import 'widgets/welcome_tips_card.dart';
 
 final _searchQueryProvider = StateProvider<String>((ref) => '');
-
-List<Checklist> _filterLists(List<Checklist> lists, String query) {
-  if (query.trim().isEmpty) return lists;
-  final q = query.trim().toLowerCase();
-  return lists.where((list) {
-    final titleMatch = list.title.toLowerCase().contains(q);
-    final itemMatch = list.items.any((item) => item.text.toLowerCase().contains(q));
-    return titleMatch || itemMatch;
-  }).toList();
-}
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -39,6 +36,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateTime? _lastBackPress;
+  final Set<String> _collapsedSections = {};
 
   void _handlePopInvoked(bool didPop, Object? result) {
     if (didPop) return;
@@ -49,36 +47,104 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
     _lastBackPress = now;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Çıkmak için tekrar geri tuşuna basın'), duration: Duration(seconds: 2)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.backPressToExit), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  Widget _card(BuildContext context, Checklist list) {
+    return ListCard(
+      checklist: list,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)),
+        );
+      },
+      onEdit: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (_) => EditListSheet(checklist: list),
+        );
+      },
+    );
+  }
+
+  Widget _buildGroup(BuildContext context, ListsNotifier notifier, List<Checklist> group, bool reorderEnabled) {
+    if (reorderEnabled) {
+      return ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: group.length,
+        onReorderItem: (oldIndex, newIndex) => runGuarded(context, () => notifier.reorderLists(group, oldIndex, newIndex)),
+        itemBuilder: (context, index) {
+          final list = group[index];
+          return Padding(
+            key: ValueKey(list.id),
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _card(context, list),
+          );
+        },
+      );
+    }
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: group.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _card(context, group[index]),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final lists = ref.watch(listsProvider);
+    final listsLoading = ref.watch(listsLoadingProvider);
     final notifier = ref.read(listsProvider.notifier);
     final query = ref.watch(_searchQueryProvider);
-    final sortedLists = [...lists]..sort((a, b) => b.sortIndex.compareTo(a.sortIndex));
-    final visibleLists = _filterLists(sortedLists, query);
+    final activeLists = lists.where((l) => !l.archived).toList();
+    final sortedLists = [...activeLists]..sort((a, b) => b.sortIndex.compareTo(a.sortIndex));
+    final visibleLists = filterLists(sortedLists, query);
+    final myLists = visibleLists.where((l) => !l.isShared).toList();
+    final sharedLists = visibleLists.where((l) => l.isShared).toList();
     final reorderEnabled = query.trim().isEmpty;
     final pendingInviteCount = ref.watch(notificationSummaryProvider).actionableCount;
+    final shownSections = [
+      if (myLists.isNotEmpty) 'mine',
+      if (sharedLists.isNotEmpty) 'shared',
+    ];
+    final allSectionsCollapsed = shownSections.isNotEmpty && shownSections.every(_collapsedSections.contains);
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: _handlePopInvoked,
       child: Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('CheckIt', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-            Text('Listelerim', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+            const Text(
+              'CHECKIT',
+              style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w800, letterSpacing: 2),
+            ),
+            Text(l10n.myListsTitle, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: 36,
+              height: 3,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.all(Radius.circular(2))),
+              ),
+            ),
           ],
         ),
         actions: [
           IconButton(
-            tooltip: 'Davetlerim ve bildirimler',
+            tooltip: l10n.invitesAndNotificationsTooltip,
             icon: Badge(
               label: Text('$pendingInviteCount'),
               isLabelVisible: pendingInviteCount > 0,
@@ -91,7 +157,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             },
           ),
           IconButton(
-            tooltip: 'Kişilere atanan bekleyen maddeler',
+            tooltip: l10n.pendingTasksTooltip,
             icon: const Icon(Icons.assignment_ind_rounded),
             onPressed: () {
               Navigator.of(context).push(
@@ -100,7 +166,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             },
           ),
           IconButton(
-            tooltip: 'Profil',
+            tooltip: l10n.archiveTooltip,
+            icon: const Icon(Icons.archive_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ArchiveScreen()),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: l10n.profileTooltip,
             icon: InitialsAvatar(name: FirebaseAuth.instance.currentUser?.email ?? '?', radius: 16),
             onPressed: () {
               Navigator.of(context).push(
@@ -119,83 +194,179 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               onChanged: (value) => ref.read(_searchQueryProvider.notifier).state = value,
             ),
           ),
+          if (ref.watch(welcomeTipsVisibleProvider))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: WelcomeTipsCard(onDismiss: () => ref.read(welcomeTipsVisibleProvider.notifier).dismiss()),
+            ),
           Expanded(
-            child: lists.isEmpty
+            child: listsLoading
+                ? const _LoadingState()
+                : activeLists.isEmpty
                 ? const _EmptyState()
                 : visibleLists.isEmpty
                 ? const _NoResultsState()
-                : reorderEnabled
-                ? ReorderableListView.builder(
+                : SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                    itemCount: visibleLists.length,
-                    onReorderItem: (oldIndex, newIndex) =>
-                        runGuarded(context, () => notifier.reorderLists(visibleLists, oldIndex, newIndex)),
-                    itemBuilder: (context, index) {
-                      final list = visibleLists[index];
-                      return Padding(
-                        key: ValueKey(list.id),
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ListCard(
-                          checklist: list,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)),
-                            );
-                          },
-                          onEdit: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                              ),
-                              builder: (_) => EditListSheet(checklist: list),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                    itemCount: visibleLists.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final list = visibleLists[index];
-                      return ListCard(
-                        checklist: list,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)),
-                          );
-                        },
-                        onEdit: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                            ),
-                            builder: (_) => EditListSheet(checklist: list),
-                          );
-                        },
-                      );
-                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (myLists.isNotEmpty) ...[
+                          _SectionHeader(
+                            icon: Icons.person_rounded,
+                            title: l10n.mineLabel,
+                            count: myLists.length,
+                            collapsed: _collapsedSections.contains('mine'),
+                            onToggle: () => setState(() {
+                              if (!_collapsedSections.remove('mine')) _collapsedSections.add('mine');
+                            }),
+                          ),
+                          if (!_collapsedSections.contains('mine')) ...[
+                            const SizedBox(height: 10),
+                            _buildGroup(context, notifier, myLists, reorderEnabled),
+                          ],
+                        ],
+                        if (sharedLists.isNotEmpty) ...[
+                          if (myLists.isNotEmpty) const SizedBox(height: 24),
+                          _SectionHeader(
+                            icon: Icons.people_alt_rounded,
+                            title: l10n.sharedLabel,
+                            count: sharedLists.length,
+                            collapsed: _collapsedSections.contains('shared'),
+                            onToggle: () => setState(() {
+                              if (!_collapsedSections.remove('shared')) _collapsedSections.add('shared');
+                            }),
+                          ),
+                          if (!_collapsedSections.contains('shared')) ...[
+                            const SizedBox(height: 10),
+                            _buildGroup(context, notifier, sharedLists, reorderEnabled),
+                          ],
+                        ],
+                        if (allSectionsCollapsed) ...[
+                          const SizedBox(height: 24),
+                          const _AllCollapsedFiller(),
+                        ],
+                      ],
+                    ),
                   ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          final subscription = ref.read(subscriptionProvider);
+          if (!subscription.canCreateList) {
+            showPaywallSheet(context, freeLimit: subscription.freeTotalListLimit);
+            return;
+          }
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const CreateListScreen()),
           );
         },
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Yeni Liste'),
+        label: Text(l10n.newListButton),
       ),
       ),
     );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final int count;
+  final bool collapsed;
+  final VoidCallback onToggle;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    required this.count,
+    required this.collapsed,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onToggle,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 16, color: AppColors.primary),
+            ),
+            const SizedBox(width: 10),
+            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            const SizedBox(width: 6),
+            Text('($count)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+            const Spacer(),
+            Icon(
+              collapsed ? Icons.chevron_right_rounded : Icons.expand_more_rounded,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fills the leftover space when every section is collapsed — otherwise the
+/// screen is just a big blank area below the headers.
+class _AllCollapsedFiller extends StatelessWidget {
+  const _AllCollapsedFiller();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight.withValues(alpha: 0.45),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.local_florist_rounded, size: 40, color: AppColors.primary),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.allCollapsedTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.allCollapsedSubtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingState extends StatelessWidget {
+  const _LoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator(color: AppColors.primary));
   }
 }
 
@@ -212,7 +383,7 @@ class _NoResultsState extends StatelessWidget {
           children: [
             const Icon(Icons.search_off_rounded, size: 56, color: AppColors.textSecondary),
             const SizedBox(height: 16),
-            Text('Sonuç bulunamadı', style: Theme.of(context).textTheme.titleMedium),
+            Text(AppLocalizations.of(context)!.noResultsFound, style: Theme.of(context).textTheme.titleMedium),
           ],
         ),
       ),
@@ -225,6 +396,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -233,12 +405,12 @@ class _EmptyState extends StatelessWidget {
           children: [
             const Icon(Icons.checklist_rounded, size: 64, color: AppColors.textSecondary),
             const SizedBox(height: 16),
-            Text('Henüz listeniz yok', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.noListsYetTitle, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            const Text(
-              'Aşağıdaki + butonuyla ilk listenizi oluşturun',
+            Text(
+              l10n.noListsYetSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
         ),
