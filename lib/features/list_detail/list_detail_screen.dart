@@ -1575,7 +1575,10 @@ class _ListTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context).appBarTheme.titleTextStyle ?? Theme.of(context).textTheme.titleLarge!;
+    // Bold so it reads as the page's heading rather than another label in
+    // the toolbar next to the action icons.
+    final base = (Theme.of(context).appBarTheme.titleTextStyle ?? Theme.of(context).textTheme.titleLarge!)
+        .copyWith(fontWeight: FontWeight.w700);
     return LayoutBuilder(
       builder: (context, constraints) {
         final painter = TextPainter(
