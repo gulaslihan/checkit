@@ -434,7 +434,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
       appBar: AppBar(
         title: _selectionMode
             ? Text(l10n.selectedCountLabel(_selectedItemIds.length))
-            : Text(list.title, overflow: TextOverflow.ellipsis),
+            : _ListTitle(list.title),
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close_rounded),
@@ -1560,6 +1560,40 @@ class _EmptyItemsState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// App bar title for a list. Short titles keep the normal app bar size;
+/// longer ones drop to a smaller font and wrap onto a second line (which
+/// still fits the standard toolbar height) instead of being cut off with
+/// an ellipsis after ~18 characters on a phone.
+class _ListTitle extends StatelessWidget {
+  final String title;
+
+  const _ListTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Theme.of(context).appBarTheme.titleTextStyle ?? Theme.of(context).textTheme.titleLarge!;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: title, style: base),
+          maxLines: 1,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: constraints.maxWidth);
+        final fits = !painter.didExceedMaxLines;
+        painter.dispose();
+        if (fits) return Text(title, maxLines: 1, style: base);
+        return Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: base.copyWith(fontSize: 17, height: 1.2),
+        );
+      },
     );
   }
 }
