@@ -2,6 +2,7 @@ const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 const { GoogleGenAI, Type } = require("@google/genai");
@@ -392,6 +393,14 @@ Rules:
 exports.generateListWithAI = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Sign-in required.");
+  }
+  // The app already holds unverified users on the verify-email screen, but
+  // that's client-side only — a direct call to this function would skip it.
+  // Reads the account's real status (not the ID token's claim, which can lag
+  // behind a just-completed verification by up to an hour).
+  const authUser = await getAuth().getUser(request.auth.uid);
+  if (!authUser.emailVerified) {
+    throw new HttpsError("failed-precondition", "email-not-verified");
   }
   const prompt = String(request.data?.prompt || "").trim();
   if (!prompt) {
