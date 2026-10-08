@@ -94,6 +94,10 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
+  # iOS rounds the corners itself and fills transparency with white, so it
+  # needs a full-bleed square (green background + foreground mark) instead
+  # of the pre-rounded mark — otherwise the icon shows a white frame.
+  image_path_ios: "assets/logo/checkit-logo-ios.png"
   web:
     generate: true
     image_path: "assets/logo/checkit-logo-mark.png"
