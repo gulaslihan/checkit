@@ -6,6 +6,9 @@ const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 const { GoogleGenAI, Type } = require("@google/genai");
+// Auth lifecycle triggers only exist in the v1 API (v2 has blocking
+// functions for sign-up/sign-in, but nothing for deletion).
+const functionsV1 = require("firebase-functions/v1");
 
 initializeApp();
 const db = getFirestore();
@@ -307,6 +310,19 @@ exports.checkStaleArchivedLists = onSchedule("1 of month 09:00", async () => {
       await Promise.all(refs.map((ref) => ref.update({ staleReminderSentAt: Timestamp.now() })));
     }),
   );
+});
+
+// An Auth account was deleted — remove its users/{uid} profile doc (email,
+// FCM token, settings, quota counters). The app deletes the user's lists,
+// invites and connections itself (lib/data/account_deletion.dart), but it
+// can't delete this doc: firestore.rules deliberately has no delete rule for
+// users, because a client-side delete would let anyone reset the permanent
+// createdListCount quota without deleting their account. Running here, only
+// after the account is really gone, covers every deletion path (normal,
+// after re-authentication, or from the Firebase Console) and keeps the
+// store/privacy-policy promise that deleting the account erases its data.
+exports.onAuthUserDeleted = functionsV1.auth.user().onDelete(async (user) => {
+  await db.collection("users").doc(user.uid).delete();
 });
 
 // Must match lib/data/category_suggestions.dart's `listCategories` exactly —

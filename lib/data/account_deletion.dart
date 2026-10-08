@@ -16,6 +16,11 @@ class AccountDeletionResult {
 /// sent/received invites, connections — and their email is scrubbed from
 /// other people's `sharedWith` lists), then deletes the Auth account itself.
 /// KVKK/GDPR "right to erasure".
+///
+/// The `users/{uid}` profile doc is NOT deleted here on purpose: rules give
+/// clients no delete on it (that would let a user reset their permanent
+/// list quota), so the `onAuthUserDeleted` Cloud Function removes it once
+/// the Auth account is actually gone.
 Future<AccountDeletionResult> deleteMyAccount() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return const AccountDeletionResult();
