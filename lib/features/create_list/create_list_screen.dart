@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/error_feedback.dart';
+import '../../core/utils/text_format.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/widgets/voice_input_button.dart';
 import '../../data/ai_list_generator.dart';
@@ -42,7 +43,12 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
   }
 
   void _addHeading() {
-    final name = _headingController.text.trim();
+    // Same first-letter capitalization the list does when it saves the heading,
+    // so the chip shows exactly what will be stored.
+    final name = capitalizeFirst(
+      _headingController.text.trim(),
+      turkish: Localizations.localeOf(context).languageCode == 'tr',
+    );
     if (name.isEmpty) return;
     final alreadyThere = _headings.any((h) => h.toLowerCase() == name.toLowerCase());
     setState(() {
