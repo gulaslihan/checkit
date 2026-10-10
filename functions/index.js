@@ -38,15 +38,31 @@ function languageOf(user) {
 // unless `apns.payload.aps.sound` is set explicitly, so this is needed for
 // any push that should reliably make noise on both platforms.
 async function sendPushIfEnabled(email, { settingKey, messages, data, sound }) {
-  if (!email) return;
+  // Log WHY a push is skipped (type only, no email/token) — without this a
+  // silent skip is indistinguishable from a delivered push in the logs.
+  const type = data?.type || "unknown";
+  if (!email) {
+    console.log(`push skipped (${type}): no recipient email`);
+    return;
+  }
   const usersSnap = await db.collection("users").where("email", "==", email).limit(1).get();
-  if (usersSnap.empty) return;
+  if (usersSnap.empty) {
+    console.log(`push skipped (${type}): no users doc for recipient`);
+    return;
+  }
   const user = usersSnap.docs[0].data();
-  if (settingKey && user[settingKey] === false) return;
+  if (settingKey && user[settingKey] === false) {
+    console.log(`push skipped (${type}): recipient turned ${settingKey} off`);
+    return;
+  }
   const token = user.fcmToken;
-  if (!token) return;
+  if (!token) {
+    console.log(`push skipped (${type}): recipient has no fcmToken`);
+    return;
+  }
   const { title, body } = messages(languageOf(user));
   try {
+    console.log(`push sending (${type}) to uid ${usersSnap.docs[0].id}`);
     await messaging.send({
       token,
       notification: { title, body },
@@ -58,6 +74,7 @@ async function sendPushIfEnabled(email, { settingKey, messages, data, sound }) {
           }
         : {}),
     });
+    console.log(`push accepted by FCM (${type})`);
   } catch (error) {
     console.error(`Push to ${email} failed: ${error.code || error.message}`);
     if (error.code === "messaging/registration-token-not-registered" || error.code === "messaging/invalid-registration-token") {
