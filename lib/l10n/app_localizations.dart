@@ -644,6 +644,30 @@ abstract class AppLocalizations {
   /// **'New items, completions and assignments in this list notify everyone who shares it. Turn off to mute the whole list.'**
   String get listNotificationsToggleSubtitle;
 
+  /// No description provided for @inviteSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite sent'**
+  String get inviteSentTitle;
+
+  /// No description provided for @connectionRequestSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get connectionRequestSentTitle;
+
+  /// No description provided for @noAccountInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{email} doesn\'t use CheckIt yet. The invite will be waiting once they sign up. They need to sign up with this same email.'**
+  String noAccountInviteBody(String email);
+
+  /// No description provided for @noAccountConnectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{email} doesn\'t use CheckIt yet. The request will be waiting once they sign up. They need to sign up with this same email.'**
+  String noAccountConnectionBody(String email);
+
   /// No description provided for @removeCollaboratorTitle.
   ///
   /// In en, this message translates to:

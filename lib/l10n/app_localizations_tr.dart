@@ -325,6 +325,22 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu listedeki yeni madde, tamamlama ve atamalar listeyi paylaşan herkese bildirim gönderir. Kapatırsan liste tamamen sessize alınır.';
 
   @override
+  String get inviteSentTitle => 'Davet gönderildi';
+
+  @override
+  String get connectionRequestSentTitle => 'İstek gönderildi';
+
+  @override
+  String noAccountInviteBody(String email) {
+    return '$email henüz CheckIt kullanmıyor. Davet, kayıt olunca onu bekliyor. Aynı e-postayla kayıt olması gerekir.';
+  }
+
+  @override
+  String noAccountConnectionBody(String email) {
+    return '$email henüz CheckIt kullanmıyor. İstek, kayıt olunca onu bekliyor. Aynı e-postayla kayıt olması gerekir.';
+  }
+
+  @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
 
   @override

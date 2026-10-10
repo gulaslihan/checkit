@@ -8,12 +8,14 @@ import '../../core/utils/error_feedback.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/utils/person_label.dart';
 import '../../core/widgets/initials_avatar.dart';
+import '../../data/account_lookup.dart';
 import '../../data/connections_provider.dart';
 import '../../data/invites_provider.dart';
 import '../../data/lists_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
 import '../../models/invite.dart';
+import 'no_account_dialog.dart';
 
 class ShareScreen extends ConsumerStatefulWidget {
   final String listId;
@@ -68,9 +70,15 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizedErrorMessage(context, errorKind))));
     } else {
       _controller.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.inviteSentToEmail(email))),
-      );
+      final exists = await accountExists(email);
+      if (!mounted) return;
+      if (exists == false) {
+        await showNoAccountDialog(context, title: l10n.inviteSentTitle, body: l10n.noAccountInviteBody(email));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.inviteSentToEmail(email))),
+        );
+      }
     }
   }
 

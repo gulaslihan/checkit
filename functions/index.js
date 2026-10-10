@@ -114,6 +114,33 @@ exports.registerFcmToken = onCall(async (request) => {
   return { stored: true };
 });
 
+// Tells the caller whether [email] already has a CheckIt account, so the app
+// can warn "X doesn't use CheckIt yet" right after an invite or connection
+// request to them. Answers ONLY for an email the caller has actually just
+// invited / sent a request to (checked against their own invites and
+// connections docs), so it can't be used to probe arbitrary addresses.
+exports.checkAccountExists = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign-in required.");
+  }
+  const email = String(request.data?.email || "").trim().toLowerCase();
+  if (!email || email.length > 320) {
+    throw new HttpsError("invalid-argument", "email is required.");
+  }
+  const uid = request.auth.uid;
+
+  const [invite, connection] = await Promise.all([
+    db.collection("invites").where("ownerId", "==", uid).where("recipientEmail", "==", email).limit(1).get(),
+    db.collection("connections").where("requesterId", "==", uid).where("recipientEmail", "==", email).limit(1).get(),
+  ]);
+  if (invite.empty && connection.empty) {
+    throw new HttpsError("permission-denied", "No invite or request to this email.");
+  }
+
+  const user = await db.collection("users").where("email", "==", email).limit(1).get();
+  return { exists: !user.empty };
+});
+
 // A new invite was created — push the recipient, if they have the app
 // installed and a stored FCM token (see lib/data/fcm_provider.dart).
 exports.onInviteCreated = onDocumentCreated("invites/{inviteId}", async (event) => {

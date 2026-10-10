@@ -7,8 +7,10 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/widgets/initials_avatar.dart';
+import '../../data/account_lookup.dart';
 import '../../data/connections_provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../sharing/no_account_dialog.dart';
 
 class ConnectionsScreen extends ConsumerStatefulWidget {
   const ConnectionsScreen({super.key});
@@ -49,9 +51,15 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizedErrorMessage(context, errorKind))));
     } else {
       _controller.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.connectionRequestSent(email))),
-      );
+      final exists = await accountExists(email);
+      if (!mounted) return;
+      if (exists == false) {
+        await showNoAccountDialog(context, title: l10n.connectionRequestSentTitle, body: l10n.noAccountConnectionBody(email));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.connectionRequestSent(email))),
+        );
+      }
     }
   }
 

@@ -324,6 +324,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'New items, completions and assignments in this list notify everyone who shares it. Turn off to mute the whole list.';
 
   @override
+  String get inviteSentTitle => 'Invite sent';
+
+  @override
+  String get connectionRequestSentTitle => 'Request sent';
+
+  @override
+  String noAccountInviteBody(String email) {
+    return '$email doesn\'t use CheckIt yet. The invite will be waiting once they sign up. They need to sign up with this same email.';
+  }
+
+  @override
+  String noAccountConnectionBody(String email) {
+    return '$email doesn\'t use CheckIt yet. The request will be waiting once they sign up. They need to sign up with this same email.';
+  }
+
+  @override
   String get removeCollaboratorTitle => 'Remove this person?';
 
   @override
