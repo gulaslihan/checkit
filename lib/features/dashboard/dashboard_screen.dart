@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +39,58 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateTime? _lastBackPress;
   final Set<String> _collapsedSections = {};
+
+  // The dashboard's per-section ReorderableListViews are non-scrolling
+  // (shrinkWrap + NeverScrollableScrollPhysics inside the outer scroll view),
+  // so Flutter's built-in drag-to-edge auto-scroll never runs and dragging a
+  // list toward the top/bottom edge didn't move the screen. Driven here by an
+  // explicit pointer-position timer — same approach as the grouped list view
+  // in list_detail_screen.dart.
+  final _scrollKey = GlobalKey();
+  final _scrollController = ScrollController();
+  bool _dragActive = false;
+  Offset? _lastPointerPosition;
+  Timer? _autoScrollTimer;
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _stopAutoScroll() {
+    _dragActive = false;
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    _lastPointerPosition = event.position;
+    if (_dragActive) {
+      _autoScrollTimer ??= Timer.periodic(const Duration(milliseconds: 16), (_) => _tickAutoScroll());
+    }
+  }
+
+  void _tickAutoScroll() {
+    if (!_dragActive || _lastPointerPosition == null || !_scrollController.hasClients) return;
+    final box = _scrollKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final localY = box.globalToLocal(_lastPointerPosition!).dy;
+    final height = box.size.height;
+    const edgeZone = 80.0;
+    const maxStep = 14.0;
+    double delta = 0;
+    if (localY < edgeZone && localY >= 0) {
+      delta = -maxStep * (1 - localY / edgeZone);
+    } else if (localY > height - edgeZone && localY <= height) {
+      delta = maxStep * (1 - (height - localY) / edgeZone);
+    }
+    if (delta == 0) return;
+    final position = _scrollController.position;
+    final newOffset = (position.pixels + delta).clamp(position.minScrollExtent, position.maxScrollExtent);
+    if (newOffset != position.pixels) _scrollController.jumpTo(newOffset);
+  }
 
   void _handlePopInvoked(bool didPop, Object? result) {
     if (didPop) return;
@@ -79,6 +133,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: group.length,
+        onReorderStart: (_) => _dragActive = true,
+        onReorderEnd: (_) => _stopAutoScroll(),
         onReorderItem: (oldIndex, newIndex) => runGuarded(context, () => notifier.reorderLists(group, oldIndex, newIndex)),
         itemBuilder: (context, index) {
           final list = group[index];
@@ -201,13 +257,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: WelcomeTipsCard(onDismiss: () => ref.read(welcomeTipsVisibleProvider.notifier).dismiss()),
             ),
           Expanded(
-            child: listsLoading
+            child: Listener(
+              onPointerMove: _handlePointerMove,
+              child: listsLoading
                 ? const _LoadingState()
                 : activeLists.isEmpty
                 ? const _EmptyState()
                 : visibleLists.isEmpty
                 ? const _NoResultsState()
                 : SingleChildScrollView(
+                    key: _scrollKey,
+                    controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,6 +310,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ],
                     ),
                   ),
+            ),
           ),
         ],
       ),

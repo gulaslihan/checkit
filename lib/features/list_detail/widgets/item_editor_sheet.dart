@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/widgets/voice_input_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/checklist_item.dart';
 
@@ -125,7 +126,10 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
               autofocus: true,
               textCapitalization: TextCapitalization.sentences,
               maxLength: 200,
-              decoration: InputDecoration(labelText: l10n.itemLabel),
+              decoration: InputDecoration(
+                labelText: l10n.itemLabel,
+                suffixIcon: VoiceInputButton(controller: _textController),
+              ),
             ),
             if (widget.allowNotes) ...[
               const SizedBox(height: 12),
@@ -134,7 +138,10 @@ class _ItemEditorContentState extends State<_ItemEditorContent> {
                 minLines: 2,
                 maxLines: 4,
                 maxLength: 400,
-                decoration: InputDecoration(labelText: l10n.noteOptionalLabel),
+                decoration: InputDecoration(
+                  labelText: l10n.noteOptionalLabel,
+                  suffixIcon: VoiceInputButton(controller: _noteController),
+                ),
               ),
             ],
             if (widget.allowDueDates) ...[
