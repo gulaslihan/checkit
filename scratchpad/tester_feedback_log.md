@@ -30,6 +30,9 @@ Amaç: Google Play üretim başvurusunda (kapalı test anketi, "geri bildirim ö
 
 | 11 Eki 2026 | Tester (WhatsApp, ikinci rapor) | "Listeleri paylaşamıyoruz. Davet gidiyor ama yeşil tike basınca bir şey olmuyor veya iznin yok diyor. Kırmızı çarpıyla reddetmekte sorun yok." (21 Eylül'deki raporla aynı belirti; yeni indirdiğini söylüyor) | Hangi sürümde olduğu ve tam hata mesajı henüz bilinmiyor. Olası neden: yeni doğrulanan hesapta eski kimlik belirteci (1.0.2'de düzeltildi: kabul öncesi belirteç yenileniyor) veya telefonda eski sürüm. Net hata mesajı ve ek güvenlik önlemi planlandı | 1.0.1/1.0.2 | Beklemede (inceleniyor) |
 
+| 11 Eki 2026 | Tester (WhatsApp, ekran görüntüsüyle) | "Maddeye ekleme yaparken sesli komut özelliği gözükmüyor" (madde düzenleme panelinde mikrofon yok) | Madde ve Not alanlarına sesli komut eklendi | 1.0.3 | Çözüldü (1.0.3, incelemede) |
+| 11 Eki 2026 | Tester (WhatsApp, ekran görüntüsüyle) | "Başka listeye ekle özelliği ilk aşamada çıkmıyor" (taşıma/kopyalama eski ⋮ menüsünde "Maddelerden yeni liste oluştur" adının arkasında) | ⋮ menüsü sadeleştirildi: "Maddeleri seç" + her zaman görünen Taşı/Kopyala/Yeni liste/Alt başlık çubuğu; ayrıca tek madde için kısayol düşünülüyor | 1.0.4 | Planlandı (kod hazır, yayınlanmadı) |
+
 ## Henüz toplanmamış / sıradaki
 - 10 Ekim 2026'dan itibaren başlayan ikinci 14 günlük kapalı testin geri bildirimleri aşağıya eklenecek.
 
