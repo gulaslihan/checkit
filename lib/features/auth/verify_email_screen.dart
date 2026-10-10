@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/auth_language.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../data/fcm_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -63,6 +64,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> with WidgetsBindi
       _info = null;
     });
     try {
+      await useAuthEmailLanguage(context);
       await FirebaseAuth.instance.currentUser?.sendEmailVerification();
       if (mounted) setState(() => _info = AppLocalizations.of(context)!.verificationResent);
     } on FirebaseAuthException catch (e) {

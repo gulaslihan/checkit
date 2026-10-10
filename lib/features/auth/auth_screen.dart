@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/auth_language.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../l10n/app_localizations.dart';
 import '../legal/privacy_policy_screen.dart';
@@ -44,6 +45,7 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
+      await useAuthEmailLanguage(context);
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +79,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       if (_isSignUp) {
+        await useAuthEmailLanguage(context);
         final credential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
         await credential.user?.sendEmailVerification();
