@@ -30,12 +30,25 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
   bool _allowDueDates = false;
   bool _allowNotes = false;
   bool _notificationsEnabled = true;
+  final _headingController = TextEditingController();
+  final List<String> _headings = [];
   List<AiGeneratedItem> _aiItems = const [];
 
   @override
   void dispose() {
     _titleController.dispose();
+    _headingController.dispose();
     super.dispose();
+  }
+
+  void _addHeading() {
+    final name = _headingController.text.trim();
+    if (name.isEmpty) return;
+    final alreadyThere = _headings.any((h) => h.toLowerCase() == name.toLowerCase());
+    setState(() {
+      if (!alreadyThere) _headings.add(name);
+      _headingController.clear();
+    });
   }
 
   bool _blockedByPaywall() {
@@ -82,6 +95,7 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
             allowDueDates: _allowDueDates,
             allowNotes: _allowNotes,
             notificationsEnabled: _notificationsEnabled,
+            subheadings: _headings,
           ),
     );
     if (succeeded && mounted) Navigator.of(context).pop();
@@ -170,6 +184,38 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
           Text(l10n.categoryOptionalLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
           CategorySelector(value: _category, onChanged: (c) => setState(() => _category = c)),
+          const SizedBox(height: 24),
+          Text(l10n.headingsOptionalLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(l10n.headingsOptionalHint, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _headingController,
+                  textCapitalization: TextCapitalization.sentences,
+                  maxLength: 40,
+                  buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+                  decoration: InputDecoration(hintText: l10n.headingNameHint),
+                  onSubmitted: (_) => _addHeading(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(onPressed: _addHeading, child: Text(l10n.addAction)),
+            ],
+          ),
+          if (_headings.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final h in _headings)
+                  InputChip(label: Text(h), onDeleted: () => setState(() => _headings.remove(h))),
+              ],
+            ),
+          ],
           if (_aiItems.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(l10n.aiItemsPreviewLabel, style: const TextStyle(fontWeight: FontWeight.w600)),

@@ -367,6 +367,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectionHeadingAction => 'Sub-heading';
 
   @override
+  String get addHeadingTitle => 'Add Sub-heading';
+
+  @override
+  String get addHeadingMenuItem => 'Add sub-heading';
+
+  @override
+  String addItemToHeadingTitle(String heading) {
+    return 'Add item to \"$heading\"';
+  }
+
+  @override
+  String get addItemToHeadingTooltip => 'Add an item to this heading';
+
+  @override
+  String get emptyHeadingBadge => 'empty';
+
+  @override
+  String get headingsOptionalLabel => 'Sub-headings (optional)';
+
+  @override
+  String get headingsOptionalHint =>
+      'Set the headings now to group your items, and add the items later.';
+
+  @override
+  String get headingNameHint => 'Heading name';
+
+  @override
+  String get addAction => 'Add';
+
+  @override
   String get removeCollaboratorTitle => 'Remove this person?';
 
   @override

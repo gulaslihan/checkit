@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../core/utils/person_label.dart';
 import '../../core/widgets/home_button.dart';
+import '../../core/widgets/voice_input_button.dart';
 import '../../data/lists_provider.dart';
 import '../../data/notification_settings_provider.dart';
 import '../../data/subscription_provider.dart';
@@ -317,7 +318,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
     ListsNotifier notifier,
   ) async {
     if (_selectedItemIds.isEmpty) return;
-    final existingHeadings = <String>[];
+    final existingHeadings = <String>[...list.subheadingOrder];
     for (final item in list.items) {
       final h = item.subheading?.trim();
       if (h != null && h.isNotEmpty && !existingHeadings.contains(h)) {
@@ -398,14 +399,77 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
     ListsNotifier notifier,
     String heading,
   ) async {
-    final ids = list.items
-        .where((i) => i.subheading?.trim() == heading)
-        .map((i) => i.id)
-        .toSet();
     await runGuarded(
       context,
-      () => notifier.setItemsSubheading(list.id, ids, null),
+      () => notifier.removeSubheading(list.id, heading),
     );
+  }
+
+  Future<void> _addHeading(Checklist list, ListsNotifier notifier) async {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.addHeadingTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          maxLength: 40,
+          decoration: InputDecoration(hintText: l10n.newHeadingNameHint),
+          onSubmitted: (v) => Navigator.of(dialogContext).pop(v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(l10n.createAction),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty || !mounted) return;
+    await runGuarded(context, () => notifier.addSubheading(list.id, name));
+  }
+
+  Future<void> _addItemToHeading(Checklist list, ListsNotifier notifier, String heading) async {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.addItemToHeadingTitle(heading)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          maxLength: 200,
+          decoration: InputDecoration(
+            hintText: l10n.addItemHint,
+            suffixIcon: VoiceInputButton(controller: controller),
+          ),
+          onSubmitted: (v) => Navigator.of(dialogContext).pop(v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(l10n.createAction),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (text == null || text.isEmpty || !mounted) return;
+    await runGuarded(context, () => notifier.addItemToSubheading(list.id, heading, text));
   }
 
   @override
@@ -459,9 +523,10 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
     final groupingActive =
         !filterActive &&
         !searchActive &&
-        list.items.any(
-          (i) => !i.isDone && (i.subheading?.trim().isNotEmpty ?? false),
-        );
+        (list.subheadingOrder.isNotEmpty ||
+            list.items.any(
+              (i) => !i.isDone && (i.subheading?.trim().isNotEmpty ?? false),
+            ));
 
     return Scaffold(
       appBar: AppBar(
@@ -556,6 +621,9 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                       case 'select':
                         _toggleSelectionMode();
                         break;
+                      case 'add_heading':
+                        _addHeading(list, notifier);
+                        break;
                       case 'paste':
                         showModalBottomSheet(
                           context: context,
@@ -587,6 +655,13 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                           label: l10n.selectItemsMenuItem,
                         ),
                       ),
+                    PopupMenuItem(
+                      value: 'add_heading',
+                      child: _MenuRow(
+                        icon: Icons.label_outline_rounded,
+                        label: l10n.addHeadingMenuItem,
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'paste',
                       child: _MenuRow(
@@ -636,7 +711,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
               onSelected: (person) => setState(() => _assigneeFilter = person),
             ),
           Expanded(
-            child: displayItems.isEmpty
+            child: displayItems.isEmpty && !groupingActive
                 ? const _EmptyItemsState()
                 : groupingActive
                 ? _buildGroupedBody(
@@ -912,8 +987,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
     // data from before this field existed, or a stray write) is appended so
     // it still shows up rather than silently vanishing.
     final headingOrder = [
-      for (final h in list.subheadingOrder)
-        if (byHeading.containsKey(h)) h,
+      ...list.subheadingOrder,
       for (final h in byHeading.keys)
         if (!list.subheadingOrder.contains(h)) h,
     ];
@@ -980,15 +1054,21 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                       }),
                       onRename: () => _renameHeading(list, notifier, heading),
                       onRemove: () => _removeHeading(list, notifier, heading),
+                      onAddItem: _selectionMode ? null : () => _addItemToHeading(list, notifier, heading),
                     ),
                     if (!collapsed)
-                      _buildSectionItems(
-                        context,
-                        list,
-                        notifier,
-                        byHeading[heading]!,
-                        reorderEnabled: reorderEnabled,
-                      ),
+                      if (!list.items.any((i) => i.subheading?.trim() == heading))
+                        _EmptyHeadingSlot(
+                          onTap: _selectionMode ? null : () => _addItemToHeading(list, notifier, heading),
+                        )
+                      else
+                        _buildSectionItems(
+                          context,
+                          list,
+                          notifier,
+                          byHeading[heading] ?? const <ChecklistItem>[],
+                          reorderEnabled: reorderEnabled,
+                        ),
                   ],
                 );
               },
@@ -1324,6 +1404,9 @@ class _HeadingHeader extends StatelessWidget {
   final VoidCallback onRename;
   final VoidCallback onRemove;
 
+  /// Adds an item straight into this heading; null hides the "+" (selection mode).
+  final VoidCallback? onAddItem;
+
   /// Non-null when headings are drag-reorderable right now — shows a drag
   /// handle wired to this index in the outer ReorderableListView.
   final int? dragIndex;
@@ -1336,6 +1419,7 @@ class _HeadingHeader extends StatelessWidget {
     required this.onToggle,
     required this.onRename,
     required this.onRemove,
+    this.onAddItem,
     this.dragIndex,
   });
 
@@ -1367,12 +1451,19 @@ class _HeadingHeader extends StatelessWidget {
               ),
             ),
             Text(
-              '$doneCount/$totalCount',
+              totalCount == 0 ? AppLocalizations.of(context)!.emptyHeadingBadge : '$doneCount/$totalCount',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
             ),
+            if (onAddItem != null)
+              IconButton(
+                tooltip: AppLocalizations.of(context)!.addItemToHeadingTooltip,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.add_rounded, size: 20, color: AppColors.primary),
+                onPressed: onAddItem,
+              ),
             PopupMenuButton<String>(
               tooltip: AppLocalizations.of(context)!.headingActionsTooltip,
               icon: const Icon(
@@ -1413,6 +1504,43 @@ class _HeadingHeader extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Placeholder under a heading that has no items yet.
+class _EmptyHeadingSlot extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const _EmptyHeadingSlot({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add_rounded, size: 18, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.of(context)!.addItemToHeadingTooltip,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
         ),
       ),
     );

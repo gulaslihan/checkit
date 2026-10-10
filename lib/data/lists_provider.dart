@@ -174,6 +174,9 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
     bool allowDueDates = false,
     bool allowNotes = false,
     bool notificationsEnabled = true,
+    /// Headings to create up front, before any item exists (shown as empty
+    /// sections; items can be added to them later).
+    List<String> subheadings = const [],
   }) async {
     if (uid == null) return;
     final now = DateTime.now();
@@ -187,6 +190,10 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
         ),
     ];
     final subheadingOrder = <String>[];
+    for (final raw in subheadings) {
+      final heading = capitalizeFirst(raw.trim(), turkish: _turkish);
+      if (heading.isNotEmpty && !subheadingOrder.contains(heading)) subheadingOrder.add(heading);
+    }
     for (final heading in itemSubheadings ?? const <String?>[]) {
       if (heading != null && heading.isNotEmpty && !subheadingOrder.contains(heading)) {
         subheadingOrder.add(heading);
@@ -609,8 +616,8 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
   /// Also keeps `subheadingOrder` in sync: a brand-new heading name is
   /// prepended (shows at the top — the alternative, leaving order to
   /// whatever position its first item happened to occupy, put new headings
-  /// in unpredictable/low spots), and any heading left with zero items after
-  /// this write is dropped from the order.
+  /// in unpredictable/low spots). A heading left with zero items stays: headings
+  /// exist on their own now (see [addSubheading]); [removeSubheading] deletes one.
   Future<void> setItemsSubheading(String listId, Set<String> itemIds, String? subheading) {
     final list = _findLocal(listId);
     if (list == null || itemIds.isEmpty) return Future.value();
@@ -633,8 +640,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
             : item,
     ];
 
-    final remainingHeadings = newItems.map((i) => i.subheading?.trim()).whereType<String>().where((h) => h.isNotEmpty).toSet();
-    var newOrder = list.subheadingOrder.where(remainingHeadings.contains).toList();
+    var newOrder = [...list.subheadingOrder];
     if (newValue != null && !newOrder.contains(newValue)) {
       newOrder = [newValue, ...newOrder];
     }
@@ -684,6 +690,62 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
     return _collection.doc(listId).update({
       'items': checklistItemsToMaps(newItems),
       'subheadingOrder': newOrder,
+    });
+  }
+
+  /// Adds an empty heading (no items yet) at the end of the order — items can
+  /// be added to it afterwards. A no-op if it already exists.
+  Future<void> addSubheading(String listId, String name) {
+    final list = _findLocal(listId);
+    if (list == null) return Future.value();
+    final heading = capitalizeFirst(name.trim(), turkish: _turkish);
+    if (heading.isEmpty || list.subheadingOrder.contains(heading)) return Future.value();
+    return _collection.doc(listId).update({
+      'subheadingOrder': [...list.subheadingOrder, heading],
+    });
+  }
+
+  /// Deletes a heading: drops it from the order and detaches its items (they
+  /// stay in the list, just without a heading).
+  Future<void> removeSubheading(String listId, String heading) {
+    final list = _findLocal(listId);
+    if (list == null) return Future.value();
+    final newItems = [
+      for (final item in list.items)
+        item.subheading?.trim() == heading
+            ? ChecklistItem(
+                id: item.id,
+                text: item.text,
+                isDone: item.isDone,
+                assignedTo: item.assignedTo,
+                createdAt: item.createdAt,
+                rating: item.rating,
+                note: item.note,
+                dueDate: item.dueDate,
+              )
+            : item,
+    ];
+    return _collection.doc(listId).update({
+      'items': checklistItemsToMaps(newItems),
+      'subheadingOrder': list.subheadingOrder.where((h) => h != heading).toList(),
+    });
+  }
+
+  /// Adds one item straight into [heading] (the heading's own "+" button).
+  Future<void> addItemToSubheading(String listId, String heading, String text) {
+    final trimmed = capitalizeFirst(text.trim(), turkish: _turkish);
+    if (trimmed.isEmpty) return Future.value();
+    final list = _findLocal(listId);
+    if (list == null) return Future.value();
+    final item = ChecklistItem(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      text: trimmed,
+      createdAt: DateTime.now(),
+      subheading: heading,
+    );
+    return _collection.doc(listId).update({
+      'items': checklistItemsToMaps([item, ...list.items]),
+      'lastModifiedBy': email,
     });
   }
 

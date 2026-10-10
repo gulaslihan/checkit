@@ -722,6 +722,60 @@ abstract class AppLocalizations {
   /// **'Sub-heading'**
   String get selectionHeadingAction;
 
+  /// No description provided for @addHeadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sub-heading'**
+  String get addHeadingTitle;
+
+  /// No description provided for @addHeadingMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sub-heading'**
+  String get addHeadingMenuItem;
+
+  /// No description provided for @addItemToHeadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item to \"{heading}\"'**
+  String addItemToHeadingTitle(String heading);
+
+  /// No description provided for @addItemToHeadingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an item to this heading'**
+  String get addItemToHeadingTooltip;
+
+  /// No description provided for @emptyHeadingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'empty'**
+  String get emptyHeadingBadge;
+
+  /// No description provided for @headingsOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-headings (optional)'**
+  String get headingsOptionalLabel;
+
+  /// No description provided for @headingsOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the headings now to group your items, and add the items later.'**
+  String get headingsOptionalHint;
+
+  /// No description provided for @headingNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading name'**
+  String get headingNameHint;
+
+  /// No description provided for @addAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addAction;
+
   /// No description provided for @removeCollaboratorTitle.
   ///
   /// In en, this message translates to:

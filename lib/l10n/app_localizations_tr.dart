@@ -368,6 +368,36 @@ class AppLocalizationsTr extends AppLocalizations {
   String get selectionHeadingAction => 'Alt başlık';
 
   @override
+  String get addHeadingTitle => 'Alt Başlık Ekle';
+
+  @override
+  String get addHeadingMenuItem => 'Alt başlık ekle';
+
+  @override
+  String addItemToHeadingTitle(String heading) {
+    return '\"$heading\" başlığına madde ekle';
+  }
+
+  @override
+  String get addItemToHeadingTooltip => 'Bu başlığa madde ekle';
+
+  @override
+  String get emptyHeadingBadge => 'boş';
+
+  @override
+  String get headingsOptionalLabel => 'Alt başlıklar (isteğe bağlı)';
+
+  @override
+  String get headingsOptionalHint =>
+      'Maddelerinizi gruplamak için başlıkları şimdi belirleyin, maddeleri sonra ekleyin.';
+
+  @override
+  String get headingNameHint => 'Başlık adı';
+
+  @override
+  String get addAction => 'Ekle';
+
+  @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
 
   @override
