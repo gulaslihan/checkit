@@ -126,6 +126,8 @@
   "headingsOptionalHint": "Maddelerinizi gruplamak için başlıkları şimdi belirleyin, maddeleri sonra ekleyin.",
   "headingNameHint": "Başlık adı",
   "addAction": "Ekle",
+  "keepScreenOnTitle": "Liste açıkken ekranı açık tut",
+  "keepScreenOnSubtitle": "Bir liste açıkken ekran kararmaz ve kilitlenmez. Daha fazla pil harcar.",
   "removeCollaboratorTitle": "Bu kişi çıkarılsın mı?",
   "removeCollaboratorConfirm": "{person} bu listeye erişimini kaybedecek ve ona atanmış maddelerin ataması kaldırılacak.",
   "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },

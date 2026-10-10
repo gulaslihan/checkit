@@ -776,6 +776,18 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get addAction;
 
+  /// No description provided for @keepScreenOnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep screen on in lists'**
+  String get keepScreenOnTitle;
+
+  /// No description provided for @keepScreenOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The screen won\'t dim or lock while a list is open. Uses more battery.'**
+  String get keepScreenOnSubtitle;
+
   /// No description provided for @removeCollaboratorTitle.
   ///
   /// In en, this message translates to:

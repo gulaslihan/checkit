@@ -398,6 +398,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addAction => 'Ekle';
 
   @override
+  String get keepScreenOnTitle => 'Liste açıkken ekranı açık tut';
+
+  @override
+  String get keepScreenOnSubtitle =>
+      'Bir liste açıkken ekran kararmaz ve kilitlenmez. Daha fazla pil harcar.';
+
+  @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
 
   @override

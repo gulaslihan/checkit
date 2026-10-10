@@ -10,6 +10,7 @@ import '../../core/widgets/initials_avatar.dart';
 import '../../data/account_deletion.dart';
 import '../../data/connections_provider.dart';
 import '../../data/fcm_provider.dart';
+import '../../data/keep_screen_on_provider.dart';
 import '../../data/locale_provider.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../l10n/app_localizations.dart';
@@ -17,6 +18,7 @@ import '../connections/connections_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../notification_settings/notification_settings_screen.dart';
+import '../notification_settings/widgets/notification_toggle_row.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -211,6 +213,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          NotificationToggleRow(
+            icon: Icons.light_mode_outlined,
+            title: l10n.keepScreenOnTitle,
+            subtitle: l10n.keepScreenOnSubtitle,
+            value: ref.watch(keepScreenOnProvider),
+            onChanged: (v) => ref.read(keepScreenOnProvider.notifier).set(v),
+          ),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(

@@ -397,6 +397,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAction => 'Add';
 
   @override
+  String get keepScreenOnTitle => 'Keep screen on in lists';
+
+  @override
+  String get keepScreenOnSubtitle =>
+      'The screen won\'t dim or lock while a list is open. Uses more battery.';
+
+  @override
   String get removeCollaboratorTitle => 'Remove this person?';
 
   @override

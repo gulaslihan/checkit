@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../../core/utils/person_label.dart';
 import '../../core/widgets/home_button.dart';
 import '../../core/widgets/voice_input_button.dart';
 import '../../data/lists_provider.dart';
+import '../../data/keep_screen_on_provider.dart';
 import '../../data/notification_settings_provider.dart';
 import '../../data/subscription_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -97,10 +99,27 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
   Timer? _groupedAutoScrollTimer;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && ref.read(keepScreenOnProvider)) _setWakelock(true);
+    });
+  }
+
+  @override
   void dispose() {
+    _setWakelock(false);
     _groupedAutoScrollTimer?.cancel();
     _groupedScrollController.dispose();
     super.dispose();
+  }
+
+  /// Keeps the screen awake while this list is open (Profile > "keep screen on"
+  /// switch). Best effort — a platform that can't do it just stays as is.
+  Future<void> _setWakelock(bool on) async {
+    try {
+      await (on ? WakelockPlus.enable() : WakelockPlus.disable());
+    } catch (_) {}
   }
 
   void _onGroupedReorderStart(int _) => _groupedDragActive = true;
@@ -498,6 +517,8 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
       });
       return const Scaffold(body: SizedBox.shrink());
     }
+
+    ref.listen<bool>(keepScreenOnProvider, (_, on) => _setWakelock(on));
 
     final list = matches.first;
     final notifier = ref.read(listsProvider.notifier);

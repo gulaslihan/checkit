@@ -142,6 +142,8 @@
   "headingsOptionalHint": "Set the headings now to group your items, and add the items later.",
   "headingNameHint": "Heading name",
   "addAction": "Add",
+  "keepScreenOnTitle": "Keep screen on in lists",
+  "keepScreenOnSubtitle": "The screen won't dim or lock while a list is open. Uses more battery.",
   "removeCollaboratorTitle": "Remove this person?",
   "removeCollaboratorConfirm": "{person} will lose access to this list, and any items assigned to them will become unassigned.",
   "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },

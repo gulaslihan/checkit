@@ -70,6 +70,7 @@ dependencies:
   # Deep-links to the OS's own per-app language settings on iOS (Settings >
   # CheckIt) from Profile > Dil — see _showLanguagePicker in profile_screen.dart.
   url_launcher: ^6.3.1
+  wakelock_plus: ^1.8.0
 
 dev_dependencies:
   flutter_test:
