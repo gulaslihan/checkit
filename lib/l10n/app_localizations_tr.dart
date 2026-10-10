@@ -332,12 +332,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String noAccountInviteBody(String email) {
-    return '$email henüz CheckIt kullanmıyor. Davet, kayıt olunca onu bekliyor. Aynı e-postayla kayıt olması gerekir.';
+    return '$email henüz CheckIt kullanmıyor. Davet onu bekliyor: uygulamayı indirip aynı e-postayla kayıt olması gerekir.';
   }
 
   @override
   String noAccountConnectionBody(String email) {
-    return '$email henüz CheckIt kullanmıyor. İstek, kayıt olunca onu bekliyor. Aynı e-postayla kayıt olması gerekir.';
+    return '$email henüz CheckIt kullanmıyor. İstek onu bekliyor: uygulamayı indirip aynı e-postayla kayıt olması gerekir.';
   }
 
   @override

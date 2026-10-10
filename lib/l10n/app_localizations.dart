@@ -659,13 +659,13 @@ abstract class AppLocalizations {
   /// No description provided for @noAccountInviteBody.
   ///
   /// In en, this message translates to:
-  /// **'{email} doesn\'t use CheckIt yet. The invite will be waiting once they sign up. They need to sign up with this same email.'**
+  /// **'{email} doesn\'t use CheckIt yet. The invite is waiting for them: they need to download the app and sign up with this same email.'**
   String noAccountInviteBody(String email);
 
   /// No description provided for @noAccountConnectionBody.
   ///
   /// In en, this message translates to:
-  /// **'{email} doesn\'t use CheckIt yet. The request will be waiting once they sign up. They need to sign up with this same email.'**
+  /// **'{email} doesn\'t use CheckIt yet. The request is waiting for them: they need to download the app and sign up with this same email.'**
   String noAccountConnectionBody(String email);
 
   /// No description provided for @removeCollaboratorTitle.

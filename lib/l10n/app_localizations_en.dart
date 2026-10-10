@@ -331,12 +331,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String noAccountInviteBody(String email) {
-    return '$email doesn\'t use CheckIt yet. The invite will be waiting once they sign up. They need to sign up with this same email.';
+    return '$email doesn\'t use CheckIt yet. The invite is waiting for them: they need to download the app and sign up with this same email.';
   }
 
   @override
   String noAccountConnectionBody(String email) {
-    return '$email doesn\'t use CheckIt yet. The request will be waiting once they sign up. They need to sign up with this same email.';
+    return '$email doesn\'t use CheckIt yet. The request is waiting for them: they need to download the app and sign up with this same email.';
   }
 
   @override
