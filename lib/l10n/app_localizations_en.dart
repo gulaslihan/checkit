@@ -317,6 +317,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeConnectionAction => 'Remove';
 
   @override
+  String get removeCollaboratorTitle => 'Remove this person?';
+
+  @override
+  String removeCollaboratorConfirm(String person) {
+    return '$person will lose access to this list, and any items assigned to them will become unassigned.';
+  }
+
+  @override
+  String get resetListConfirmTitle => 'Reset this list?';
+
+  @override
+  String get resetListConfirmBody =>
+      'Every item will be unchecked. This applies to everyone who shares this list.';
+
+  @override
   String get confirmDeleteAccountTitle =>
       'Are you sure you want to delete your account?';
 

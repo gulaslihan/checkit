@@ -11,11 +11,13 @@ import '../../core/utils/person_label.dart';
 import '../../core/widgets/home_button.dart';
 import '../../data/lists_provider.dart';
 import '../../data/notification_settings_provider.dart';
+import '../../data/subscription_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
 import '../../models/checklist_item.dart';
 import '../dashboard/widgets/list_search_bar.dart';
 import '../sharing/share_screen.dart';
+import '../subscription/paywall_sheet.dart';
 import 'widgets/add_item_bar.dart';
 import 'widgets/bulk_import_sheet.dart';
 import 'widgets/checklist_item_tile.dart';
@@ -148,6 +150,29 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
     }
   }
 
+  /// The ⋮ menu's "Sıfırla" un-checks every item for everyone sharing the
+  /// list, so it gets a confirm step (the completion dialog's own "Sıfırla"
+  /// button is already a deliberate choice and needs none).
+  Future<void> _confirmReset(Checklist list, ListsNotifier notifier) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.resetListConfirmTitle),
+        content: Text(l10n.resetListConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.resetMenuItem, style: const TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await runGuarded(context, () => notifier.resetList(list.id));
+  }
+
   void _toggleSelectionMode() {
     setState(() {
       _selectionMode = !_selectionMode;
@@ -165,6 +190,14 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
         .map((i) => i.text)
         .toList();
     if (selectedTexts.isEmpty) return;
+
+    // Checked before asking for a name — otherwise the user types one and
+    // only then hits a generic "no permission" from the server-side quota.
+    final subscription = ref.read(subscriptionProvider);
+    if (!subscription.canCreateList) {
+      showPaywallSheet(context, freeLimit: subscription.freeTotalListLimit);
+      return;
+    }
 
     final controller = TextEditingController(
       text: l10n.newListFromSelectionDefaultTitle(list.title),
@@ -512,7 +545,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                   onSelected: (value) {
                     switch (value) {
                       case 'reset':
-                        runGuarded(context, () => notifier.resetList(list.id));
+                        _confirmReset(list, notifier);
                         break;
                       case 'sort_manual':
                         setState(() => _sort = ItemSort.manual);

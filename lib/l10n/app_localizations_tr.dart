@@ -318,6 +318,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String get removeConnectionAction => 'Kaldır';
 
   @override
+  String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
+
+  @override
+  String removeCollaboratorConfirm(String person) {
+    return '$person bu listeye erişimini kaybedecek ve ona atanmış maddelerin ataması kaldırılacak.';
+  }
+
+  @override
+  String get resetListConfirmTitle => 'Liste sıfırlansın mı?';
+
+  @override
+  String get resetListConfirmBody =>
+      'Tüm maddelerin işareti kaldırılacak. Bu, listeyi paylaşan herkes için geçerli olur.';
+
+  @override
   String get confirmDeleteAccountTitle =>
       'Hesabınızı silmek istediğinize emin misiniz?';
 

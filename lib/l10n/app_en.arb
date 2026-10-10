@@ -115,6 +115,11 @@
   "removeConnectionConfirm": "{email} will be removed from your connections. You can send a new request later if you change your mind.",
   "@removeConnectionConfirm": { "placeholders": { "email": { "type": "String" } } },
   "removeConnectionAction": "Remove",
+  "removeCollaboratorTitle": "Remove this person?",
+  "removeCollaboratorConfirm": "{person} will lose access to this list, and any items assigned to them will become unassigned.",
+  "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },
+  "resetListConfirmTitle": "Reset this list?",
+  "resetListConfirmBody": "Every item will be unchecked. This applies to everyone who shares this list.",
 
   "confirmDeleteAccountTitle": "Are you sure you want to delete your account?",
   "confirmDeleteAccountBody": "This can't be undone. All lists you own and their related data will be permanently deleted, and your account will be closed.",

@@ -99,6 +99,11 @@
   "removeConnectionConfirm": "{email} bağlantılarınızdan kaldırılacak. Fikrinizi değiştirirseniz daha sonra tekrar istek gönderebilirsiniz.",
   "@removeConnectionConfirm": { "placeholders": { "email": { "type": "String" } } },
   "removeConnectionAction": "Kaldır",
+  "removeCollaboratorTitle": "Bu kişi çıkarılsın mı?",
+  "removeCollaboratorConfirm": "{person} bu listeye erişimini kaybedecek ve ona atanmış maddelerin ataması kaldırılacak.",
+  "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },
+  "resetListConfirmTitle": "Liste sıfırlansın mı?",
+  "resetListConfirmBody": "Tüm maddelerin işareti kaldırılacak. Bu, listeyi paylaşan herkes için geçerli olur.",
 
   "confirmDeleteAccountTitle": "Hesabınızı silmek istediğinize emin misiniz?",
   "confirmDeleteAccountBody": "Bu işlem geri alınamaz. Sahibi olduğunuz tüm listeler ve ilişkili tüm verileriniz kalıcı olarak silinecek, hesabınız kapatılacaktır.",

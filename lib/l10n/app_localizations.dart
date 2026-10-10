@@ -632,6 +632,30 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get removeConnectionAction;
 
+  /// No description provided for @removeCollaboratorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this person?'**
+  String get removeCollaboratorTitle;
+
+  /// No description provided for @removeCollaboratorConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} will lose access to this list, and any items assigned to them will become unassigned.'**
+  String removeCollaboratorConfirm(String person);
+
+  /// No description provided for @resetListConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset this list?'**
+  String get resetListConfirmTitle;
+
+  /// No description provided for @resetListConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item will be unchecked. This applies to everyone who shares this list.'**
+  String get resetListConfirmBody;
+
   /// No description provided for @confirmDeleteAccountTitle.
   ///
   /// In en, this message translates to:

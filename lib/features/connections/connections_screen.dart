@@ -182,7 +182,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                 trailing: IconButton(
                   tooltip: l10n.cancelTooltip,
                   icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-                  onPressed: () => notifier.remove(c.id),
+                  onPressed: () => runGuarded(context, () => notifier.remove(c.id)),
                 ),
               ),
           ],

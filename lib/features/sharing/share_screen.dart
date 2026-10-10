@@ -103,12 +103,47 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     await runGuarded(context, () => ref.read(listsProvider.notifier).setNickname(widget.listId, person, result));
   }
 
+  /// Same confirm treatment for both leaving a list and removing someone —
+  /// either way access is gone and can't be undone from here.
+  Future<void> _confirmRemove(Checklist list, String person, String myEmail) async {
+    final l10n = AppLocalizations.of(context)!;
+    final isSelf = person.toLowerCase() == myEmail.toLowerCase();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isSelf ? l10n.leaveListTitle : l10n.removeCollaboratorTitle),
+        content: Text(
+          isSelf ? l10n.leaveListConfirm(list.title) : l10n.removeCollaboratorConfirm(listPersonLabel(context, list, person)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(isSelf ? l10n.leaveAction : l10n.removeTooltip, style: const TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await runGuarded(context, () => ref.read(listsProvider.notifier).removeCollaborator(widget.listId, person));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final lists = ref.watch(listsProvider);
     final matches = lists.where((l) => l.id == widget.listId);
     if (matches.isEmpty) {
+      // The list is gone (you just left it, or the owner deleted it) — close
+      // this screen too instead of leaving a blank page; ListDetailScreen
+      // underneath does the same, so the stack unwinds back to the dashboard.
+      if (!ref.watch(listsLoadingProvider)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
       return const Scaffold(body: SizedBox.shrink());
     }
     final list = matches.first;
@@ -286,10 +321,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                                 ? l10n.leaveListTooltip
                                 : l10n.removeTooltip,
                             icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-                            onPressed: () => runGuarded(
-                              context,
-                              () => ref.read(listsProvider.notifier).removeCollaborator(widget.listId, person),
-                            ),
+                            onPressed: () => _confirmRemove(list, person, myEmail),
                           ),
                       ],
                     ),
@@ -320,7 +352,7 @@ class _InviteRow extends ConsumerWidget {
       trailing: IconButton(
         tooltip: l10n.cancelTooltip,
         icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-        onPressed: () => notifier.deleteInvite(invite.id),
+        onPressed: () => runGuarded(context, () => notifier.deleteInvite(invite.id)),
       ),
     );
   }

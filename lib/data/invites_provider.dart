@@ -99,6 +99,10 @@ class InvitesNotifier {
     if (FirebaseAuth.instance.currentUser?.emailVerified != true) {
       throw const EmailNotVerifiedException();
     }
+    // The accept rule reads `email_verified` from the ID token, which can
+    // still say "false" for up to an hour after the user verified — force a
+    // fresh token so a just-verified user isn't told they have no permission.
+    await FirebaseAuth.instance.currentUser?.getIdToken(true);
     final batch = FirebaseFirestore.instance.batch();
     batch.update(_lists.doc(invite.listId), {
       'sharedWith': FieldValue.arrayUnion([invite.recipientEmail]),
