@@ -6,26 +6,34 @@ import '../../../core/widgets/voice_input_button.dart';
 import '../../../data/ai_list_generator.dart';
 import '../../../l10n/app_localizations.dart';
 
-Future<AiGeneratedList?> showAiPromptSheet(BuildContext context) {
+Future<AiGeneratedList?> showAiPromptSheet(BuildContext context, {String? initialPrompt}) {
   return showModalBottomSheet<AiGeneratedList>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-    builder: (_) => const _AiPromptSheet(),
+    builder: (_) => _AiPromptSheet(initialPrompt: initialPrompt),
   );
 }
 
 class _AiPromptSheet extends StatefulWidget {
-  const _AiPromptSheet();
+  final String? initialPrompt;
+
+  const _AiPromptSheet({this.initialPrompt});
 
   @override
   State<_AiPromptSheet> createState() => _AiPromptSheetState();
 }
 
 class _AiPromptSheetState extends State<_AiPromptSheet> {
-  final _controller = TextEditingController();
+  late final TextEditingController _controller;
   bool _isGenerating = false;
   String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialPrompt);
+  }
 
   @override
   void dispose() {

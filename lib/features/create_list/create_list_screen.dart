@@ -17,7 +17,14 @@ import 'widgets/category_selector.dart';
 import 'widgets/settings_toggle.dart';
 
 class CreateListScreen extends ConsumerStatefulWidget {
-  const CreateListScreen({super.key});
+  /// Optional starting values — used by the first-run intro to hand over what
+  /// the user picked. [aiPromptSeed] opens the AI sheet straight away with that
+  /// sentence filled in.
+  final String? initialTitle;
+  final String? initialCategory;
+  final String? aiPromptSeed;
+
+  const CreateListScreen({super.key, this.initialTitle, this.initialCategory, this.aiPromptSeed});
 
   @override
   ConsumerState<CreateListScreen> createState() => _CreateListScreenState();
@@ -34,6 +41,19 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
   final _headingController = TextEditingController();
   final List<String> _headings = [];
   List<AiGeneratedItem> _aiItems = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.initialTitle ?? '';
+    _category = widget.initialCategory;
+    final seed = widget.aiPromptSeed;
+    if (seed != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openAiPrompt(seed: seed);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -64,9 +84,9 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
     return true;
   }
 
-  Future<void> _openAiPrompt() async {
+  Future<void> _openAiPrompt({String? seed}) async {
     if (_blockedByPaywall()) return;
-    final result = await showAiPromptSheet(context);
+    final result = await showAiPromptSheet(context, initialPrompt: seed);
     if (result == null || !mounted) return;
     setState(() {
       _titleController.text = result.title;

@@ -205,21 +205,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'The person you invite needs a CheckIt account with that same email. Once they accept from their bell icon, their access opens right away.';
 
   @override
-  String get welcomeTipsTitle => 'Welcome to CheckIt';
-
-  @override
-  String get welcomeTipAi =>
-      'Tap \"New List\", then \"Create with AI\" to get a ready-made list from a short description.';
-
-  @override
-  String get welcomeTipShare =>
-      'Share a list by inviting someone\'s email. They accept from the bell icon at the top, and you can assign items to each other.';
-
-  @override
-  String get welcomeTipVerify =>
-      'Verify your email to accept invites. If the verification email doesn\'t arrive, check your spam folder.';
-
-  @override
   String get invitesScreenInfoBanner =>
       'Accepting an invite adds you to someone\'s list. Connections are just shortcuts for people you invite often. You need a verified email to accept invites.';
 
@@ -402,6 +387,126 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get keepScreenOnSubtitle =>
       'The screen won\'t dim or lock while a list is open. Uses more battery.';
+
+  @override
+  String get onboardWelcomeTitle => 'Create, share and reuse your lists';
+
+  @override
+  String get onboardWelcomeSubtitle =>
+      'Groceries, travel, household chores, recipes, event preparation... all your lists in one place.';
+
+  @override
+  String get onboardPointCreate =>
+      'Make a list in seconds and tick items off as you go';
+
+  @override
+  String get onboardPointShare =>
+      'Invite people by email and tick items together';
+
+  @override
+  String get onboardPointAssign => 'Assign items to someone and get notified';
+
+  @override
+  String get onboardPointAi => 'Or let AI draft a list for you';
+
+  @override
+  String get onboardNext => 'Continue';
+
+  @override
+  String get onboardSkip => 'Skip';
+
+  @override
+  String get onboardLater => 'Maybe later';
+
+  @override
+  String get onboardChoiceTitle => 'What will your first list be?';
+
+  @override
+  String get onboardChoiceSubtitle =>
+      'Pick one and we\'ll get it ready for you.';
+
+  @override
+  String get onboardKindShopping => 'Shopping';
+
+  @override
+  String get onboardKindTravel => 'Travel and packing';
+
+  @override
+  String get onboardKindHome => 'Household chores';
+
+  @override
+  String get onboardKindRecipe => 'Recipe';
+
+  @override
+  String get onboardKindEvent => 'Event preparation';
+
+  @override
+  String get onboardKindWork => 'Work and projects';
+
+  @override
+  String get onboardKindOther => 'Something else';
+
+  @override
+  String get onboardTitleShopping => 'Weekly groceries';
+
+  @override
+  String get onboardTitleTravel => 'Weekend trip';
+
+  @override
+  String get onboardTitleHome => 'Household chores';
+
+  @override
+  String get onboardTitleRecipe => 'Recipe';
+
+  @override
+  String get onboardTitleEvent => 'Party preparation';
+
+  @override
+  String get onboardTitleWork => 'New project';
+
+  @override
+  String get onboardTitleOther => 'To do';
+
+  @override
+  String get onboardPromptShopping => 'A weekly grocery shopping list';
+
+  @override
+  String get onboardPromptTravel => 'A packing list for a weekend trip';
+
+  @override
+  String get onboardPromptHome => 'A weekly household chores list';
+
+  @override
+  String get onboardPromptRecipe => 'Ingredients for a dinner recipe';
+
+  @override
+  String get onboardPromptEvent => 'A birthday party preparation checklist';
+
+  @override
+  String get onboardPromptWork => 'A to-do list for starting a new project';
+
+  @override
+  String get onboardPromptOther => 'Things I need to do this week';
+
+  @override
+  String get onboardStartTitle => 'Let\'s get your first list going';
+
+  @override
+  String get onboardStartSubtitle => 'How would you like to start?';
+
+  @override
+  String get onboardManualTitle => 'I\'ll create it myself';
+
+  @override
+  String get onboardManualSubtitle =>
+      'Opens a new list with a name and category ready for you.';
+
+  @override
+  String get onboardAiTitle => 'Let AI draft it';
+
+  @override
+  String get onboardAiSubtitle =>
+      'Describe it in a sentence and get a ready list. You can edit it before saving.';
 
   @override
   String get removeCollaboratorTitle => 'Remove this person?';

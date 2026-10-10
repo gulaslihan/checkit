@@ -440,30 +440,6 @@ abstract class AppLocalizations {
   /// **'The person you invite needs a CheckIt account with that same email. Once they accept from their bell icon, their access opens right away.'**
   String get shareInfoBanner;
 
-  /// No description provided for @welcomeTipsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to CheckIt'**
-  String get welcomeTipsTitle;
-
-  /// No description provided for @welcomeTipAi.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap \"New List\", then \"Create with AI\" to get a ready-made list from a short description.'**
-  String get welcomeTipAi;
-
-  /// No description provided for @welcomeTipShare.
-  ///
-  /// In en, this message translates to:
-  /// **'Share a list by inviting someone\'s email. They accept from the bell icon at the top, and you can assign items to each other.'**
-  String get welcomeTipShare;
-
-  /// No description provided for @welcomeTipVerify.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify your email to accept invites. If the verification email doesn\'t arrive, check your spam folder.'**
-  String get welcomeTipVerify;
-
   /// No description provided for @invitesScreenInfoBanner.
   ///
   /// In en, this message translates to:
@@ -787,6 +763,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The screen won\'t dim or lock while a list is open. Uses more battery.'**
   String get keepScreenOnSubtitle;
+
+  /// No description provided for @onboardWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create, share and reuse your lists'**
+  String get onboardWelcomeTitle;
+
+  /// No description provided for @onboardWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries, travel, household chores, recipes, event preparation... all your lists in one place.'**
+  String get onboardWelcomeSubtitle;
+
+  /// No description provided for @onboardPointCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a list in seconds and tick items off as you go'**
+  String get onboardPointCreate;
+
+  /// No description provided for @onboardPointShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite people by email and tick items together'**
+  String get onboardPointShare;
+
+  /// No description provided for @onboardPointAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign items to someone and get notified'**
+  String get onboardPointAssign;
+
+  /// No description provided for @onboardPointAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Or let AI draft a list for you'**
+  String get onboardPointAi;
+
+  /// No description provided for @onboardNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onboardNext;
+
+  /// No description provided for @onboardSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardSkip;
+
+  /// No description provided for @onboardLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get onboardLater;
+
+  /// No description provided for @onboardChoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What will your first list be?'**
+  String get onboardChoiceTitle;
+
+  /// No description provided for @onboardChoiceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one and we\'ll get it ready for you.'**
+  String get onboardChoiceSubtitle;
+
+  /// No description provided for @onboardKindShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get onboardKindShopping;
+
+  /// No description provided for @onboardKindTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel and packing'**
+  String get onboardKindTravel;
+
+  /// No description provided for @onboardKindHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Household chores'**
+  String get onboardKindHome;
+
+  /// No description provided for @onboardKindRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get onboardKindRecipe;
+
+  /// No description provided for @onboardKindEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event preparation'**
+  String get onboardKindEvent;
+
+  /// No description provided for @onboardKindWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work and projects'**
+  String get onboardKindWork;
+
+  /// No description provided for @onboardKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get onboardKindOther;
+
+  /// No description provided for @onboardTitleShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly groceries'**
+  String get onboardTitleShopping;
+
+  /// No description provided for @onboardTitleTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekend trip'**
+  String get onboardTitleTravel;
+
+  /// No description provided for @onboardTitleHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Household chores'**
+  String get onboardTitleHome;
+
+  /// No description provided for @onboardTitleRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get onboardTitleRecipe;
+
+  /// No description provided for @onboardTitleEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Party preparation'**
+  String get onboardTitleEvent;
+
+  /// No description provided for @onboardTitleWork.
+  ///
+  /// In en, this message translates to:
+  /// **'New project'**
+  String get onboardTitleWork;
+
+  /// No description provided for @onboardTitleOther.
+  ///
+  /// In en, this message translates to:
+  /// **'To do'**
+  String get onboardTitleOther;
+
+  /// No description provided for @onboardPromptShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'A weekly grocery shopping list'**
+  String get onboardPromptShopping;
+
+  /// No description provided for @onboardPromptTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'A packing list for a weekend trip'**
+  String get onboardPromptTravel;
+
+  /// No description provided for @onboardPromptHome.
+  ///
+  /// In en, this message translates to:
+  /// **'A weekly household chores list'**
+  String get onboardPromptHome;
+
+  /// No description provided for @onboardPromptRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients for a dinner recipe'**
+  String get onboardPromptRecipe;
+
+  /// No description provided for @onboardPromptEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'A birthday party preparation checklist'**
+  String get onboardPromptEvent;
+
+  /// No description provided for @onboardPromptWork.
+  ///
+  /// In en, this message translates to:
+  /// **'A to-do list for starting a new project'**
+  String get onboardPromptWork;
+
+  /// No description provided for @onboardPromptOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Things I need to do this week'**
+  String get onboardPromptOther;
+
+  /// No description provided for @onboardStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s get your first list going'**
+  String get onboardStartTitle;
+
+  /// No description provided for @onboardStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like to start?'**
+  String get onboardStartSubtitle;
+
+  /// No description provided for @onboardManualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll create it myself'**
+  String get onboardManualTitle;
+
+  /// No description provided for @onboardManualSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens a new list with a name and category ready for you.'**
+  String get onboardManualSubtitle;
+
+  /// No description provided for @onboardAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let AI draft it'**
+  String get onboardAiTitle;
+
+  /// No description provided for @onboardAiSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe it in a sentence and get a ready list. You can edit it before saving.'**
+  String get onboardAiSubtitle;
 
   /// No description provided for @removeCollaboratorTitle.
   ///

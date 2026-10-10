@@ -12,20 +12,20 @@ import '../../core/widgets/initials_avatar.dart';
 import '../../data/lists_provider.dart';
 import '../../data/notifications_provider.dart';
 import '../../data/subscription_provider.dart';
-import '../../data/welcome_tips_provider.dart';
+import '../../data/onboarding_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/checklist.dart';
 import '../archive/archive_screen.dart';
 import '../create_list/create_list_screen.dart';
 import '../invites/my_invites_screen.dart';
 import '../list_detail/list_detail_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../pending_items/pending_items_screen.dart';
 import '../profile/profile_screen.dart';
 import '../subscription/paywall_sheet.dart';
 import 'widgets/edit_list_sheet.dart';
 import 'widgets/list_card.dart';
 import 'widgets/list_search_bar.dart';
-import 'widgets/welcome_tips_card.dart';
 
 final _searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -46,6 +46,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // list toward the top/bottom edge didn't move the screen. Driven here by an
   // explicit pointer-position timer — same approach as the grouped list view
   // in list_detail_screen.dart.
+  /// The first-run intro is decided once per screen: after both the stored
+  /// "already seen" flag and the first lists snapshot have loaded.
+  bool _onboardingChecked = false;
   final _scrollKey = GlobalKey();
   final _scrollController = ScrollController();
   bool _dragActive = false;
@@ -160,6 +163,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
     final lists = ref.watch(listsProvider);
     final listsLoading = ref.watch(listsLoadingProvider);
+    final onboardingDone = ref.watch(onboardingDoneProvider);
+    if (!_onboardingChecked && onboardingDone != null && !listsLoading) {
+      _onboardingChecked = true;
+      final hasNoLists = lists.isEmpty;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || onboardingDone) return;
+        if (hasNoLists) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
+        } else {
+          // Someone who already has lists (e.g. a tester from before this
+          // existed) never needs the intro.
+          ref.read(onboardingDoneProvider.notifier).markDone();
+        }
+      });
+    }
     final notifier = ref.read(listsProvider.notifier);
     final query = ref.watch(_searchQueryProvider);
     final activeLists = lists.where((l) => !l.archived).toList();
@@ -251,11 +269,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               onChanged: (value) => ref.read(_searchQueryProvider.notifier).state = value,
             ),
           ),
-          if (ref.watch(welcomeTipsVisibleProvider))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: WelcomeTipsCard(onDismiss: () => ref.read(welcomeTipsVisibleProvider.notifier).dismiss()),
-            ),
           Expanded(
             child: Listener(
               onPointerMove: _handlePointerMove,

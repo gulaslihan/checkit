@@ -206,21 +206,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Davet ettiğiniz kişinin aynı e-posta adresiyle bir CheckIt hesabı olması gerekir. Zil simgesinden daveti kabul edince listeye erişimi hemen açılır.';
 
   @override
-  String get welcomeTipsTitle => 'CheckIt\'e hoş geldiniz';
-
-  @override
-  String get welcomeTipAi =>
-      '\"Yeni Liste\"ye dokunup \"Yapay Zeka ile Oluştur\"u seçin; kısa bir açıklamadan hazır bir liste alın.';
-
-  @override
-  String get welcomeTipShare =>
-      'Bir listeyi e-posta ile davet ederek paylaşın. Davet edilen kişi üstteki zil simgesinden kabul eder; maddeleri birbirinize atayabilirsiniz.';
-
-  @override
-  String get welcomeTipVerify =>
-      'Davet kabul edebilmek için e-postanızı doğrulayın. Doğrulama e-postası gelmezse spam klasörüne bakın.';
-
-  @override
   String get invitesScreenInfoBanner =>
       'Daveti kabul etmek sizi birinin listesine ekler. Bağlantılar ise sık davet ettiğiniz kişiler için sadece kısayoldur. Davet kabul etmek için e-postanızın doğrulanmış olması gerekir.';
 
@@ -403,6 +388,125 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get keepScreenOnSubtitle =>
       'Bir liste açıkken ekran kararmaz ve kilitlenmez. Daha fazla pil harcar.';
+
+  @override
+  String get onboardWelcomeTitle => 'Listeni oluştur, paylaş, tekrar kullan';
+
+  @override
+  String get onboardWelcomeSubtitle =>
+      'Market, seyahat, ev işleri, yemek tarifi, organizasyon hazırlığı... tüm listeler tek yerde.';
+
+  @override
+  String get onboardPointCreate =>
+      'Saniyeler içinde liste yap, maddeleri işaretle';
+
+  @override
+  String get onboardPointShare => 'E-postayla davet et, birlikte işaretleyin';
+
+  @override
+  String get onboardPointAssign => 'Maddeleri birine ata, bildirim al';
+
+  @override
+  String get onboardPointAi => 'İstersen yapay zeka sana bir liste hazırlasın';
+
+  @override
+  String get onboardNext => 'Devam';
+
+  @override
+  String get onboardSkip => 'Atla';
+
+  @override
+  String get onboardLater => 'Şimdilik atla';
+
+  @override
+  String get onboardChoiceTitle => 'İlk listen ne olacak?';
+
+  @override
+  String get onboardChoiceSubtitle => 'Birini seç, senin için hazırlayalım.';
+
+  @override
+  String get onboardKindShopping => 'Alışveriş';
+
+  @override
+  String get onboardKindTravel => 'Seyahat ve valiz';
+
+  @override
+  String get onboardKindHome => 'Ev işleri';
+
+  @override
+  String get onboardKindRecipe => 'Yemek tarifi';
+
+  @override
+  String get onboardKindEvent => 'Organizasyon ve hazırlık';
+
+  @override
+  String get onboardKindWork => 'İş ve projeler';
+
+  @override
+  String get onboardKindOther => 'Başka bir şey';
+
+  @override
+  String get onboardTitleShopping => 'Haftalık market';
+
+  @override
+  String get onboardTitleTravel => 'Hafta sonu gezisi';
+
+  @override
+  String get onboardTitleHome => 'Ev işleri';
+
+  @override
+  String get onboardTitleRecipe => 'Yemek tarifi';
+
+  @override
+  String get onboardTitleEvent => 'Parti hazırlığı';
+
+  @override
+  String get onboardTitleWork => 'Yeni proje';
+
+  @override
+  String get onboardTitleOther => 'Yapılacaklar';
+
+  @override
+  String get onboardPromptShopping => 'Haftalık market alışverişi listesi';
+
+  @override
+  String get onboardPromptTravel => 'Hafta sonu gezisi için valiz listesi';
+
+  @override
+  String get onboardPromptHome => 'Haftalık ev işleri listesi';
+
+  @override
+  String get onboardPromptRecipe => 'Akşam yemeği tarifi için malzeme listesi';
+
+  @override
+  String get onboardPromptEvent => 'Doğum günü partisi hazırlık listesi';
+
+  @override
+  String get onboardPromptWork =>
+      'Yeni bir proje başlatmak için yapılacaklar listesi';
+
+  @override
+  String get onboardPromptOther => 'Bu hafta yapmam gerekenler';
+
+  @override
+  String get onboardStartTitle => 'İlk listeni hazırlayalım';
+
+  @override
+  String get onboardStartSubtitle => 'Nasıl başlamak istersin?';
+
+  @override
+  String get onboardManualTitle => 'Kendim oluşturayım';
+
+  @override
+  String get onboardManualSubtitle =>
+      'Adı ve kategorisi hazır, yeni bir liste açılır.';
+
+  @override
+  String get onboardAiTitle => 'Yapay zeka hazırlasın';
+
+  @override
+  String get onboardAiSubtitle =>
+      'Bir cümleyle anlat, hazır bir liste gelsin. Kaydetmeden önce düzenleyebilirsin.';
 
   @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
