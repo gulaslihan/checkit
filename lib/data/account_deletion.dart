@@ -6,10 +6,9 @@ import '../models/checklist_item.dart';
 import 'lists_provider.dart';
 
 class AccountDeletionResult {
-  final bool needsReauth;
   final AppErrorKind? errorKind;
 
-  const AccountDeletionResult({this.needsReauth = false, this.errorKind});
+  const AccountDeletionResult({this.errorKind});
 }
 
 /// Deletes everything the signed-in user owns or is party to (their lists,
@@ -17,18 +16,31 @@ class AccountDeletionResult {
 /// other people's `sharedWith` lists), then deletes the Auth account itself.
 /// KVKK/GDPR "right to erasure".
 ///
+/// The password is checked FIRST: Firebase refuses to delete an account
+/// without a recent login, and by then the Firestore data would already be
+/// gone — a cancelled or wrong re-auth would leave an open account with no
+/// data. Re-authenticating up front means nothing is touched unless the
+/// whole deletion can complete.
+///
 /// The `users/{uid}` profile doc is NOT deleted here on purpose: rules give
 /// clients no delete on it (that would let a user reset their permanent
 /// list quota), so the `onAuthUserDeleted` Cloud Function removes it once
 /// the Auth account is actually gone.
-Future<AccountDeletionResult> deleteMyAccount() async {
+Future<AccountDeletionResult> deleteMyAccount(String password) async {
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return const AccountDeletionResult();
-  final uid = user.uid;
-  final email = user.email;
+  final email = user?.email;
+  if (user == null || email == null) return const AccountDeletionResult(errorKind: AppErrorKind.noSession);
 
   try {
-    await _deleteOwnedData(uid: uid, email: email);
+    await user.reauthenticateWithCredential(EmailAuthProvider.credential(email: email, password: password));
+  } on FirebaseAuthException catch (e) {
+    return AccountDeletionResult(errorKind: classifyAuthError(e));
+  } catch (e) {
+    return AccountDeletionResult(errorKind: classifyError(e));
+  }
+
+  try {
+    await _deleteOwnedData(uid: user.uid, email: email);
   } catch (e) {
     return AccountDeletionResult(errorKind: classifyError(e));
   }
@@ -37,9 +49,6 @@ Future<AccountDeletionResult> deleteMyAccount() async {
     await user.delete();
     return const AccountDeletionResult();
   } on FirebaseAuthException catch (e) {
-    if (e.code == 'requires-recent-login') {
-      return const AccountDeletionResult(needsReauth: true);
-    }
     return AccountDeletionResult(errorKind: classifyAuthError(e));
   }
 }
@@ -113,22 +122,4 @@ Future<void> _deleteOwnedData({required String uid, required String? email}) asy
   }
 
   await batch.commit();
-}
-
-/// Firestore cleanup already happened in [deleteMyAccount] — this just
-/// re-proves identity (Firebase requires a *recent* login for account
-/// deletion) and finishes deleting the Auth account.
-Future<AppErrorKind?> reauthenticateAndDeleteAccount(String password) async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null || user.email == null) return AppErrorKind.noSession;
-  try {
-    final credential = EmailAuthProvider.credential(email: user.email!, password: password);
-    await user.reauthenticateWithCredential(credential);
-    await user.delete();
-    return null;
-  } on FirebaseAuthException catch (e) {
-    return classifyAuthError(e);
-  } catch (e) {
-    return classifyError(e);
-  }
 }

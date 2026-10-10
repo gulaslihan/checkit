@@ -43,29 +43,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
-    setState(() => _isDeleting = true);
-    final result = await deleteMyAccount();
-    if (!mounted) return;
-
-    if (result.needsReauth) {
-      setState(() => _isDeleting = false);
-      await _reauthenticateAndRetry();
-      return;
-    }
-
-    setState(() => _isDeleting = false);
-    if (result.errorKind != null) {
-      final detail = localizedErrorMessage(context, result.errorKind!);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorWithDetail(detail))));
-    }
-    // On success, FirebaseAuth's user becomes null and AuthGate switches
-    // screens automatically — nothing else to do here.
-  }
-
-  Future<void> _reauthenticateAndRetry() async {
-    final l10n = AppLocalizations.of(context)!;
+    // Password first — nothing is deleted unless it checks out (see
+    // deleteMyAccount), so cancelling here can never leave a half-deleted account.
     final passwordController = TextEditingController();
     final password = await showDialog<String>(
       context: context,
@@ -90,13 +71,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     passwordController.dispose();
     if (password == null || password.isEmpty || !mounted) return;
 
+    final navigator = Navigator.of(context);
     setState(() => _isDeleting = true);
-    final errorKind = await reauthenticateAndDeleteAccount(password);
+    final result = await deleteMyAccount(password);
     if (!mounted) return;
     setState(() => _isDeleting = false);
-    if (errorKind != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizedErrorMessage(context, errorKind))));
+
+    if (result.errorKind != null) {
+      final detail = localizedErrorMessage(context, result.errorKind!);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorWithDetail(detail))));
+      return;
     }
+    // The account is gone, so AuthGate swaps to the sign-in screen — but this
+    // screen was pushed on top of the old home route and would stay visible
+    // there (same reason sign-out pops to the first route).
+    navigator.popUntil((route) => route.isFirst);
   }
 
   Future<void> _showLanguagePicker() async {
