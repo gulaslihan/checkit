@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/error_feedback.dart';
+import '../../data/fcm_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Blocks entry to the app until the signed-in user confirms their email —
@@ -117,7 +118,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> with WidgetsBindi
                   child: Text(l10n.resendEmailButton),
                 ),
                 TextButton(
-                  onPressed: () => FirebaseAuth.instance.signOut(),
+                  onPressed: () async {
+                    await detachDeviceFromAccount(uid: FirebaseAuth.instance.currentUser?.uid);
+                    await FirebaseAuth.instance.signOut();
+                  },
                   child: Text(l10n.signOut, style: const TextStyle(color: AppColors.textSecondary)),
                 ),
               ],

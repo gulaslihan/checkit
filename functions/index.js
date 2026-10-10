@@ -83,6 +83,37 @@ async function sendPushIfEnabled(email, { settingKey, messages, data, sound }) {
   }
 }
 
+// Stores this device's FCM token on the caller's users/{uid} doc AND removes
+// the same token from every other users doc. An FCM token identifies a
+// DEVICE, not an account: when someone signs out and another account signs in
+// on the same phone (or sign-out never got to clean up), the old account's doc
+// still holds the token and its pushes would keep landing on that phone. Only
+// the Admin SDK can scrub other users' docs, hence a function. The caller must
+// already know the token string, so this can't be used to strip a token it
+// doesn't hold. Doesn't create the doc: the client seeds it (with email) on
+// first sign-in, and a doc holding only a token would stop that seeding.
+exports.registerFcmToken = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign-in required.");
+  }
+  const token = String(request.data?.token || "");
+  if (!token || token.length > 4096) {
+    throw new HttpsError("invalid-argument", "token is required.");
+  }
+  const uid = request.auth.uid;
+
+  const dupes = await db.collection("users").where("fcmToken", "==", token).get();
+  await Promise.all(
+    dupes.docs.filter((d) => d.id !== uid).map((d) => d.ref.update({ fcmToken: FieldValue.delete() })),
+  );
+
+  const ref = db.collection("users").doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) return { stored: false };
+  await ref.update({ fcmToken: token });
+  return { stored: true };
+});
+
 // A new invite was created — push the recipient, if they have the app
 // installed and a stored FCM token (see lib/data/fcm_provider.dart).
 exports.onInviteCreated = onDocumentCreated("invites/{inviteId}", async (event) => {

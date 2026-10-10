@@ -9,6 +9,7 @@ import '../../core/widgets/home_button.dart';
 import '../../core/widgets/initials_avatar.dart';
 import '../../data/account_deletion.dart';
 import '../../data/connections_provider.dart';
+import '../../data/fcm_provider.dart';
 import '../../data/locale_provider.dart';
 import '../../core/utils/error_feedback.dart';
 import '../../l10n/app_localizations.dart';
@@ -85,6 +86,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // The account is gone, so AuthGate swaps to the sign-in screen — but this
     // screen was pushed on top of the old home route and would stay visible
     // there (same reason sign-out pops to the first route).
+    await detachDeviceFromAccount();
     navigator.popUntil((route) => route.isFirst);
   }
 
@@ -213,6 +215,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
+                await detachDeviceFromAccount(uid: FirebaseAuth.instance.currentUser?.uid);
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) Navigator.of(context).popUntil((route) => route.isFirst);
               },
