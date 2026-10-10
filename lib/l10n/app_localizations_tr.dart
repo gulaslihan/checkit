@@ -341,6 +341,33 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get sortTooltip => 'Sırala';
+
+  @override
+  String get selectItemsMenuItem => 'Maddeleri seç';
+
+  @override
+  String get bulkAddMenuItem => 'Toplu madde ekle';
+
+  @override
+  String get selectAllAction => 'Tümünü seç';
+
+  @override
+  String get deselectAllAction => 'Seçimi kaldır';
+
+  @override
+  String get selectionMoveAction => 'Taşı';
+
+  @override
+  String get selectionCopyAction => 'Kopyala';
+
+  @override
+  String get selectionNewListAction => 'Yeni liste';
+
+  @override
+  String get selectionHeadingAction => 'Alt başlık';
+
+  @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
 
   @override
@@ -698,7 +725,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addItemHint => 'Yeni madde ekle...';
 
   @override
-  String get bulkImportTitle => 'Yapıştırarak Toplu Ekle';
+  String get bulkImportTitle => 'Toplu Madde Ekle';
 
   @override
   String get bulkImportSubtitle =>
@@ -755,18 +782,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get renameHeadingTitle => 'Alt Başlığı Yeniden Adlandır';
 
   @override
-  String get selectedItemsMenuTooltip => 'Seçili maddelerle';
-
-  @override
-  String get createNewListMenuItem => 'Yeni Liste Oluştur';
-
-  @override
-  String get moveToOtherListMenuItem => 'Başka Listeye Taşı';
-
-  @override
-  String get copyToOtherListMenuItem => 'Başka Listeye Kopyala';
-
-  @override
   String get assignToHeadingMenuItem => 'Alt Başlığa Ata';
 
   @override
@@ -792,12 +807,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sortDueDateMenuItem => 'Tarihe göre sırala';
-
-  @override
-  String get createListFromItemsMenuItem => 'Maddelerden yeni liste oluştur';
-
-  @override
-  String get pasteToAddMenuItem => 'Yapıştırarak ekle';
 
   @override
   String get searchItemsHint => 'Maddelerde ara...';

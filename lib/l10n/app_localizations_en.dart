@@ -340,6 +340,33 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sortTooltip => 'Sort';
+
+  @override
+  String get selectItemsMenuItem => 'Select items';
+
+  @override
+  String get bulkAddMenuItem => 'Add multiple items';
+
+  @override
+  String get selectAllAction => 'Select all';
+
+  @override
+  String get deselectAllAction => 'Clear selection';
+
+  @override
+  String get selectionMoveAction => 'Move';
+
+  @override
+  String get selectionCopyAction => 'Copy';
+
+  @override
+  String get selectionNewListAction => 'New list';
+
+  @override
+  String get selectionHeadingAction => 'Sub-heading';
+
+  @override
   String get removeCollaboratorTitle => 'Remove this person?';
 
   @override
@@ -698,7 +725,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addItemHint => 'Add a new item...';
 
   @override
-  String get bulkImportTitle => 'Paste to Bulk Add';
+  String get bulkImportTitle => 'Add Multiple Items';
 
   @override
   String get bulkImportSubtitle =>
@@ -755,18 +782,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get renameHeadingTitle => 'Rename Sub-heading';
 
   @override
-  String get selectedItemsMenuTooltip => 'With selected items';
-
-  @override
-  String get createNewListMenuItem => 'Create New List';
-
-  @override
-  String get moveToOtherListMenuItem => 'Move to Another List';
-
-  @override
-  String get copyToOtherListMenuItem => 'Copy to Another List';
-
-  @override
   String get assignToHeadingMenuItem => 'Assign to Sub-heading';
 
   @override
@@ -792,12 +807,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sortDueDateMenuItem => 'Sort by date';
-
-  @override
-  String get createListFromItemsMenuItem => 'Create new list from items';
-
-  @override
-  String get pasteToAddMenuItem => 'Paste to add';
 
   @override
   String get searchItemsHint => 'Search items...';

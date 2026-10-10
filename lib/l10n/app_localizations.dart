@@ -668,6 +668,60 @@ abstract class AppLocalizations {
   /// **'{email} doesn\'t use CheckIt yet. The request is waiting for them: they need to download the app and sign up with this same email.'**
   String noAccountConnectionBody(String email);
 
+  /// No description provided for @sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sortTooltip;
+
+  /// No description provided for @selectItemsMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Select items'**
+  String get selectItemsMenuItem;
+
+  /// No description provided for @bulkAddMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add multiple items'**
+  String get bulkAddMenuItem;
+
+  /// No description provided for @selectAllAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectAllAction;
+
+  /// No description provided for @deselectAllAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get deselectAllAction;
+
+  /// No description provided for @selectionMoveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get selectionMoveAction;
+
+  /// No description provided for @selectionCopyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get selectionCopyAction;
+
+  /// No description provided for @selectionNewListAction.
+  ///
+  /// In en, this message translates to:
+  /// **'New list'**
+  String get selectionNewListAction;
+
+  /// No description provided for @selectionHeadingAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-heading'**
+  String get selectionHeadingAction;
+
   /// No description provided for @removeCollaboratorTitle.
   ///
   /// In en, this message translates to:
@@ -1283,7 +1337,7 @@ abstract class AppLocalizations {
   /// No description provided for @bulkImportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Paste to Bulk Add'**
+  /// **'Add Multiple Items'**
   String get bulkImportTitle;
 
   /// No description provided for @bulkImportSubtitle.
@@ -1370,30 +1424,6 @@ abstract class AppLocalizations {
   /// **'Rename Sub-heading'**
   String get renameHeadingTitle;
 
-  /// No description provided for @selectedItemsMenuTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'With selected items'**
-  String get selectedItemsMenuTooltip;
-
-  /// No description provided for @createNewListMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Create New List'**
-  String get createNewListMenuItem;
-
-  /// No description provided for @moveToOtherListMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Move to Another List'**
-  String get moveToOtherListMenuItem;
-
-  /// No description provided for @copyToOtherListMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy to Another List'**
-  String get copyToOtherListMenuItem;
-
   /// No description provided for @assignToHeadingMenuItem.
   ///
   /// In en, this message translates to:
@@ -1447,18 +1477,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort by date'**
   String get sortDueDateMenuItem;
-
-  /// No description provided for @createListFromItemsMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Create new list from items'**
-  String get createListFromItemsMenuItem;
-
-  /// No description provided for @pasteToAddMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Paste to add'**
-  String get pasteToAddMenuItem;
 
   /// No description provided for @searchItemsHint.
   ///

@@ -476,57 +476,18 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
             : null,
         actions: _selectionMode
             ? [
-                PopupMenuButton<String>(
-                  tooltip: l10n.selectedItemsMenuTooltip,
-                  enabled: _selectedItemIds.isNotEmpty,
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'new_list':
-                        _createListFromSelection(list, notifier);
-                        break;
-                      case 'move':
-                        _moveOrCopySelection(list, notifier, isMove: true);
-                        break;
-                      case 'copy':
-                        _moveOrCopySelection(list, notifier, isMove: false);
-                        break;
-                      case 'heading':
-                        _assignHeadingToSelection(list, notifier);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'new_list',
-                      child: _MenuRow(
-                        icon: Icons.playlist_add_rounded,
-                        label: l10n.createNewListMenuItem,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'move',
-                      child: _MenuRow(
-                        icon: Icons.drive_file_move_outline,
-                        label: l10n.moveToOtherListMenuItem,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'copy',
-                      child: _MenuRow(
-                        icon: Icons.content_copy_rounded,
-                        label: l10n.copyToOtherListMenuItem,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'heading',
-                      child: _MenuRow(
-                        icon: Icons.label_outline_rounded,
-                        label: l10n.assignToHeadingMenuItem,
-                      ),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () => setState(() {
+                    final allIds = list.items.map((i) => i.id).toSet();
+                    final allSelected = _selectedItemIds.length == allIds.length;
+                    _selectedItemIds.clear();
+                    if (!allSelected) _selectedItemIds.addAll(allIds);
+                  }),
+                  child: Text(
+                    _selectedItemIds.length == list.items.length ? l10n.deselectAllAction : l10n.selectAllAction,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
               ]
             : [
                 IconButton(
@@ -540,28 +501,58 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                     );
                   },
                 ),
+                PopupMenuButton<ItemSort>(
+                  tooltip: l10n.sortTooltip,
+                  icon: const Icon(Icons.sort_rounded),
+                  onSelected: (value) => setState(() => _sort = value),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: ItemSort.manual,
+                      child: _MenuRow(
+                        icon: Icons.drag_handle_rounded,
+                        label: l10n.sortManualMenuItem,
+                        checked: _sort == ItemSort.manual,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: ItemSort.alphabetical,
+                      child: _MenuRow(
+                        icon: Icons.sort_by_alpha_rounded,
+                        label: l10n.sortAlphaMenuItem,
+                        checked: _sort == ItemSort.alphabetical,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: ItemSort.newest,
+                      child: _MenuRow(
+                        icon: Icons.arrow_downward_rounded,
+                        label: l10n.sortNewestMenuItem,
+                        checked: _sort == ItemSort.newest,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: ItemSort.oldest,
+                      child: _MenuRow(
+                        icon: Icons.arrow_upward_rounded,
+                        label: l10n.sortOldestMenuItem,
+                        checked: _sort == ItemSort.oldest,
+                      ),
+                    ),
+                    if (list.allowDueDates)
+                      PopupMenuItem(
+                        value: ItemSort.dueDate,
+                        child: _MenuRow(
+                          icon: Icons.calendar_month_rounded,
+                          label: l10n.sortDueDateMenuItem,
+                          checked: _sort == ItemSort.dueDate,
+                        ),
+                      ),
+                  ],
+                ),
                 PopupMenuButton<String>(
                   tooltip: l10n.moreActionsTooltip,
                   onSelected: (value) {
                     switch (value) {
-                      case 'reset':
-                        _confirmReset(list, notifier);
-                        break;
-                      case 'sort_manual':
-                        setState(() => _sort = ItemSort.manual);
-                        break;
-                      case 'sort_alpha':
-                        setState(() => _sort = ItemSort.alphabetical);
-                        break;
-                      case 'sort_newest':
-                        setState(() => _sort = ItemSort.newest);
-                        break;
-                      case 'sort_oldest':
-                        setState(() => _sort = ItemSort.oldest);
-                        break;
-                      case 'sort_due':
-                        setState(() => _sort = ItemSort.dueDate);
-                        break;
                       case 'select':
                         _toggleSelectionMode();
                         break;
@@ -582,9 +573,27 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                           ),
                         );
                         break;
+                      case 'reset':
+                        _confirmReset(list, notifier);
+                        break;
                     }
                   },
                   itemBuilder: (context) => [
+                    if (list.items.isNotEmpty)
+                      PopupMenuItem(
+                        value: 'select',
+                        child: _MenuRow(
+                          icon: Icons.checklist_rounded,
+                          label: l10n.selectItemsMenuItem,
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: 'paste',
+                      child: _MenuRow(
+                        icon: Icons.playlist_add_rounded,
+                        label: l10n.bulkAddMenuItem,
+                      ),
+                    ),
                     if (list.isCheckable && list.completedCount > 0)
                       PopupMenuItem(
                         value: 'reset',
@@ -593,67 +602,20 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                           label: l10n.resetMenuItem,
                         ),
                       ),
-                    PopupMenuItem(
-                      value: 'sort_manual',
-                      child: _MenuRow(
-                        icon: Icons.drag_handle_rounded,
-                        label: l10n.sortManualMenuItem,
-                        checked: _sort == ItemSort.manual,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'sort_alpha',
-                      child: _MenuRow(
-                        icon: Icons.sort_by_alpha_rounded,
-                        label: l10n.sortAlphaMenuItem,
-                        checked: _sort == ItemSort.alphabetical,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'sort_newest',
-                      child: _MenuRow(
-                        icon: Icons.arrow_downward_rounded,
-                        label: l10n.sortNewestMenuItem,
-                        checked: _sort == ItemSort.newest,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'sort_oldest',
-                      child: _MenuRow(
-                        icon: Icons.arrow_upward_rounded,
-                        label: l10n.sortOldestMenuItem,
-                        checked: _sort == ItemSort.oldest,
-                      ),
-                    ),
-                    if (list.allowDueDates)
-                      PopupMenuItem(
-                        value: 'sort_due',
-                        child: _MenuRow(
-                          icon: Icons.calendar_month_rounded,
-                          label: l10n.sortDueDateMenuItem,
-                          checked: _sort == ItemSort.dueDate,
-                        ),
-                      ),
-                    if (list.items.isNotEmpty)
-                      PopupMenuItem(
-                        value: 'select',
-                        child: _MenuRow(
-                          icon: Icons.content_paste_go_rounded,
-                          label: l10n.createListFromItemsMenuItem,
-                        ),
-                      ),
-                    PopupMenuItem(
-                      value: 'paste',
-                      child: _MenuRow(
-                        icon: Icons.playlist_add_check_rounded,
-                        label: l10n.pasteToAddMenuItem,
-                      ),
-                    ),
                   ],
                 ),
                 const HomeButton(),
               ],
       ),
+      bottomNavigationBar: _selectionMode
+          ? _SelectionActionBar(
+              enabled: _selectedItemIds.isNotEmpty,
+              onMove: () => _moveOrCopySelection(list, notifier, isMove: true),
+              onCopy: () => _moveOrCopySelection(list, notifier, isMove: false),
+              onNewList: () => _createListFromSelection(list, notifier),
+              onHeading: () => _assignHeadingToSelection(list, notifier),
+            )
+          : null,
       body: Column(
         children: [
           if (list.items.length > 1 && !_selectionMode)
@@ -1630,6 +1592,77 @@ class _ListTitle extends StatelessWidget {
           style: base.copyWith(fontSize: 17, height: 1.2),
         );
       },
+    );
+  }
+}
+
+/// Bottom bar shown in selection mode: what can be done with the checked
+/// items, always visible instead of hidden behind a menu. Dimmed until at
+/// least one item is selected.
+class _SelectionActionBar extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onMove;
+  final VoidCallback onCopy;
+  final VoidCallback onNewList;
+  final VoidCallback onHeading;
+
+  const _SelectionActionBar({
+    required this.enabled,
+    required this.onMove,
+    required this.onCopy,
+    required this.onNewList,
+    required this.onHeading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.border)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _SelectionAction(icon: Icons.drive_file_move_outline, label: l10n.selectionMoveAction, onTap: enabled ? onMove : null),
+            _SelectionAction(icon: Icons.content_copy_rounded, label: l10n.selectionCopyAction, onTap: enabled ? onCopy : null),
+            _SelectionAction(icon: Icons.playlist_add_rounded, label: l10n.selectionNewListAction, onTap: enabled ? onNewList : null),
+            _SelectionAction(icon: Icons.label_outline_rounded, label: l10n.selectionHeadingAction, onTap: enabled ? onHeading : null),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectionAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _SelectionAction({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = onTap == null ? AppColors.textSecondary.withValues(alpha: 0.45) : AppColors.textPrimary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 22, color: color),
+            const SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 11, color: color)),
+          ],
+        ),
+      ),
     );
   }
 }
