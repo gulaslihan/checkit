@@ -146,6 +146,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
       isCheckable: data['isCheckable'] as bool? ?? true,
       allowDueDates: data['allowDueDates'] as bool? ?? false,
       allowNotes: data['allowNotes'] as bool? ?? false,
+      notificationsEnabled: data['notificationsEnabled'] as bool? ?? true,
       ownerEmail: data['ownerEmail'] as String?,
       sortIndex: data['sortIndex'] as int? ?? 0,
       sharedWith: List<String>.from(data['sharedWith'] as List? ?? const []),
@@ -172,6 +173,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
     bool isCheckable = true,
     bool allowDueDates = false,
     bool allowNotes = false,
+    bool notificationsEnabled = true,
   }) async {
     if (uid == null) return;
     final now = DateTime.now();
@@ -200,6 +202,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
       'isCheckable': isCheckable,
       'allowDueDates': allowDueDates,
       'allowNotes': allowNotes,
+      'notificationsEnabled': notificationsEnabled,
       'sharedWith': <String>[],
       'items': checklistItemsToMaps(items),
       'sortIndex': now.millisecondsSinceEpoch,
@@ -249,6 +252,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
     required bool isCheckable,
     required bool allowDueDates,
     required bool allowNotes,
+    required bool notificationsEnabled,
   }) {
     return _collection.doc(listId).update({
       'title': capitalizeFirst(title.trim(), turkish: _turkish),
@@ -257,6 +261,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
       'isCheckable': isCheckable,
       'allowDueDates': allowDueDates,
       'allowNotes': allowNotes,
+      'notificationsEnabled': notificationsEnabled,
       // Backfills lists created before ownerEmail existed on the document.
       'ownerEmail': email,
     });
@@ -304,6 +309,7 @@ class ListsNotifier extends StateNotifier<List<Checklist>> {
       'isCheckable': original.isCheckable,
       'allowDueDates': original.allowDueDates,
       'allowNotes': original.allowNotes,
+      'notificationsEnabled': original.notificationsEnabled,
       'sharedWith': <String>[],
       'items': checklistItemsToMaps(newItems),
       'sortIndex': now.millisecondsSinceEpoch,

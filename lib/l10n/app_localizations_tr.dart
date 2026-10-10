@@ -318,6 +318,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get removeConnectionAction => 'Kaldır';
 
   @override
+  String get listNotificationsToggleTitle => 'Bu liste için bildirim';
+
+  @override
+  String get listNotificationsToggleSubtitle =>
+      'Bu listedeki yeni madde, tamamlama ve atamalar listeyi paylaşan herkese bildirim gönderir. Kapatırsan liste tamamen sessize alınır.';
+
+  @override
   String get removeCollaboratorTitle => 'Bu kişi çıkarılsın mı?';
 
   @override

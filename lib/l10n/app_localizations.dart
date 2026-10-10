@@ -632,6 +632,18 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get removeConnectionAction;
 
+  /// No description provided for @listNotificationsToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications for this list'**
+  String get listNotificationsToggleTitle;
+
+  /// No description provided for @listNotificationsToggleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New items, completions and assignments in this list notify everyone who shares it. Turn off to mute the whole list.'**
+  String get listNotificationsToggleSubtitle;
+
   /// No description provided for @removeCollaboratorTitle.
   ///
   /// In en, this message translates to:

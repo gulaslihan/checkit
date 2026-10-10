@@ -29,6 +29,7 @@ Future<void> syncDueDateReminders(List<Checklist> lists, {required bool enabled,
 
   final active = <String, _ActiveReminder>{};
   for (final list in lists) {
+    if (!list.notificationsEnabled) continue;
     for (final item in list.items) {
       if (item.isDone) continue;
       if (item.dueDate == null) continue;

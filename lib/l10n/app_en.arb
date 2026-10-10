@@ -115,6 +115,8 @@
   "removeConnectionConfirm": "{email} will be removed from your connections. You can send a new request later if you change your mind.",
   "@removeConnectionConfirm": { "placeholders": { "email": { "type": "String" } } },
   "removeConnectionAction": "Remove",
+  "listNotificationsToggleTitle": "Notifications for this list",
+  "listNotificationsToggleSubtitle": "New items, completions and assignments in this list notify everyone who shares it. Turn off to mute the whole list.",
   "removeCollaboratorTitle": "Remove this person?",
   "removeCollaboratorConfirm": "{person} will lose access to this list, and any items assigned to them will become unassigned.",
   "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },

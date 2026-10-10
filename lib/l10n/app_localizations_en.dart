@@ -317,6 +317,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeConnectionAction => 'Remove';
 
   @override
+  String get listNotificationsToggleTitle => 'Notifications for this list';
+
+  @override
+  String get listNotificationsToggleSubtitle =>
+      'New items, completions and assignments in this list notify everyone who shares it. Turn off to mute the whole list.';
+
+  @override
   String get removeCollaboratorTitle => 'Remove this person?';
 
   @override

@@ -99,6 +99,8 @@
   "removeConnectionConfirm": "{email} bağlantılarınızdan kaldırılacak. Fikrinizi değiştirirseniz daha sonra tekrar istek gönderebilirsiniz.",
   "@removeConnectionConfirm": { "placeholders": { "email": { "type": "String" } } },
   "removeConnectionAction": "Kaldır",
+  "listNotificationsToggleTitle": "Bu liste için bildirim",
+  "listNotificationsToggleSubtitle": "Bu listedeki yeni madde, tamamlama ve atamalar listeyi paylaşan herkese bildirim gönderir. Kapatırsan liste tamamen sessize alınır.",
   "removeCollaboratorTitle": "Bu kişi çıkarılsın mı?",
   "removeCollaboratorConfirm": "{person} bu listeye erişimini kaybedecek ve ona atanmış maddelerin ataması kaldırılacak.",
   "@removeCollaboratorConfirm": { "placeholders": { "person": { "type": "String" } } },

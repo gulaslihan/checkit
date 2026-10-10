@@ -28,6 +28,7 @@ class _EditListSheetState extends ConsumerState<EditListSheet> {
   late bool _isCheckable;
   late bool _allowDueDates;
   late bool _allowNotes;
+  late bool _notificationsEnabled;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _EditListSheetState extends ConsumerState<EditListSheet> {
     _isCheckable = widget.checklist.isCheckable;
     _allowDueDates = widget.checklist.allowDueDates;
     _allowNotes = widget.checklist.allowNotes;
+    _notificationsEnabled = widget.checklist.notificationsEnabled;
   }
 
   @override
@@ -59,6 +61,7 @@ class _EditListSheetState extends ConsumerState<EditListSheet> {
             isCheckable: _isCheckable,
             allowDueDates: _allowDueDates,
             allowNotes: _allowNotes,
+            notificationsEnabled: _notificationsEnabled,
           ),
     );
     if (succeeded && mounted) Navigator.of(context).pop();
@@ -226,6 +229,15 @@ class _EditListSheetState extends ConsumerState<EditListSheet> {
             subtitle: l10n.notesToggleSubtitle,
             value: _allowNotes,
             onChanged: (v) => setState(() => _allowNotes = v),
+          ),
+          const SizedBox(height: 12),
+          SettingsToggle(
+            icon: Icons.notifications_active_rounded,
+            iconColor: AppColors.secondary,
+            title: l10n.listNotificationsToggleTitle,
+            subtitle: l10n.listNotificationsToggleSubtitle,
+            value: _notificationsEnabled,
+            onChanged: (v) => setState(() => _notificationsEnabled = v),
           ),
           const SizedBox(height: 20),
           Text(l10n.categoryLabel, style: const TextStyle(fontWeight: FontWeight.w600)),

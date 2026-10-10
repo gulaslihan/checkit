@@ -29,6 +29,7 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
   bool _isCheckable = true;
   bool _allowDueDates = false;
   bool _allowNotes = false;
+  bool _notificationsEnabled = true;
   List<AiGeneratedItem> _aiItems = const [];
 
   @override
@@ -80,6 +81,7 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
             isCheckable: _isCheckable,
             allowDueDates: _allowDueDates,
             allowNotes: _allowNotes,
+            notificationsEnabled: _notificationsEnabled,
           ),
     );
     if (succeeded && mounted) Navigator.of(context).pop();
@@ -154,6 +156,15 @@ class _CreateListScreenState extends ConsumerState<CreateListScreen> {
             subtitle: l10n.notesToggleSubtitle,
             value: _allowNotes,
             onChanged: (v) => setState(() => _allowNotes = v),
+          ),
+          const SizedBox(height: 12),
+          SettingsToggle(
+            icon: Icons.notifications_active_rounded,
+            iconColor: AppColors.secondary,
+            title: l10n.listNotificationsToggleTitle,
+            subtitle: l10n.listNotificationsToggleSubtitle,
+            value: _notificationsEnabled,
+            onChanged: (v) => setState(() => _notificationsEnabled = v),
           ),
           const SizedBox(height: 24),
           Text(l10n.categoryOptionalLabel, style: const TextStyle(fontWeight: FontWeight.w600)),

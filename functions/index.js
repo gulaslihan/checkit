@@ -176,12 +176,21 @@ exports.onListUpdated = onDocumentUpdated("lists/{listId}", async (event) => {
   const beforeItems = new Map((before.items || []).map((item) => [item.id, item]));
   const afterItems = after.items || [];
 
+  // A muted list (owner turned its notification switch off) sends no item
+  // pushes at all. A non-checkable list has no "done" state, so "completed"
+  // can never happen there and "new item" is just someone building the list —
+  // not worth buzzing everyone. Explicit assignments still notify unless the
+  // whole list is muted, and "someone accepted your invite" is always sent.
+  const muted = after.notificationsEnabled === false;
+  const nonCheckable = after.isCheckable === false;
+  const itemEventRecipients = muted || nonCheckable ? [] : recipients;
+
   const pushes = [];
   for (const item of afterItems) {
     const prev = beforeItems.get(item.id);
 
     if (!prev) {
-      for (const email of recipients) {
+      for (const email of itemEventRecipients) {
         pushes.push(
           sendPushIfEnabled(email, {
             settingKey: "onItemAdded",
@@ -197,7 +206,7 @@ exports.onListUpdated = onDocumentUpdated("lists/{listId}", async (event) => {
     }
 
     if (!prev.isDone && item.isDone) {
-      for (const email of recipients) {
+      for (const email of itemEventRecipients) {
         pushes.push(
           sendCompletionPushIfStillDone(listId, item.id, email, {
             settingKey: "onItemCompleted",
@@ -211,7 +220,7 @@ exports.onListUpdated = onDocumentUpdated("lists/{listId}", async (event) => {
       }
     }
 
-    if (item.assignedTo && item.assignedTo !== prev.assignedTo && item.assignedTo !== actor) {
+    if (!muted && item.assignedTo && item.assignedTo !== prev.assignedTo && item.assignedTo !== actor) {
       pushes.push(
         sendPushIfEnabled(item.assignedTo, {
           settingKey: "onTaskAssigned",
@@ -264,6 +273,9 @@ exports.checkLongPendingItems = onSchedule("every day 09:00", async () => {
   await Promise.all(
     listsSnap.docs.map(async (doc) => {
       const list = doc.data();
+      // Muted lists send nothing, and in a non-checkable list nothing can ever
+      // be "done", so every item would be nagged about forever.
+      if (list.notificationsEnabled === false || list.isCheckable === false) return;
       const items = list.items || [];
       let mutated = false;
 

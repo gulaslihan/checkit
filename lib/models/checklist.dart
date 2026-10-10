@@ -23,6 +23,11 @@ class Checklist {
   /// When true, items can carry a short free-text note.
   final bool allowNotes;
 
+  /// List-wide switch (set by the owner, applies to everyone sharing the
+  /// list): when false, no push for new items, completions or assignments in
+  /// this list, no long-pending nudges and no on-device due-date reminders.
+  final bool notificationsEnabled;
+
   /// Drives dashboard order — higher sorts first. Any collaborator can
   /// reorder (same trust model as reordering items in a shared list).
   final int sortIndex;
@@ -55,6 +60,7 @@ class Checklist {
     this.isCheckable = true,
     this.allowDueDates = false,
     this.allowNotes = false,
+    this.notificationsEnabled = true,
     this.ownerEmail,
     this.sortIndex = 0,
     this.nicknames = const {},
@@ -82,6 +88,7 @@ class Checklist {
     bool? isCheckable,
     bool? allowDueDates,
     bool? allowNotes,
+    bool? notificationsEnabled,
     Map<String, String>? nicknames,
   }) {
     return Checklist(
@@ -94,6 +101,7 @@ class Checklist {
       isCheckable: isCheckable ?? this.isCheckable,
       allowDueDates: allowDueDates ?? this.allowDueDates,
       allowNotes: allowNotes ?? this.allowNotes,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       ownerEmail: ownerEmail,
       sortIndex: sortIndex,
       nicknames: nicknames ?? this.nicknames,
