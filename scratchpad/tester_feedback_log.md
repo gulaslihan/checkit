@@ -28,6 +28,8 @@ Amaç: Google Play üretim başvurusunda (kapalı test anketi, "geri bildirim ö
 | Eki 2026 | Gülşen (ürün incelemesi) | Hesap silmede şifre sonradan soruluyor; iptal edilirse veriler gitmiş ama hesap açık kalıyor; silince Profil ekranı açık kalıyor; hesap silinince kullanıcı profil kaydı kalıyor | Şifre artık en başta soruluyor ve doğrulanmadan hiçbir veri silinmiyor; silme sonrası ekran kapanıyor; profil kaydını silen sunucu fonksiyonu yayına alındı | 1.0.1 + sunucu | Çözüldü (sunucu yayında; web'de uçtan uca test edildi 10 Eki; uygulama 1.0.1 incelemede) |
 | Eki 2026 | Gülşen (ürün incelemesi) | Yapay zeka özelliği doğrudan sunucuya çağrılarak kötüye kullanılabilir | Sunucuda doğrulanmış e-posta şartı eklendi | Sunucu tarafı | Çözüldü (yayında) |
 
+| 11 Eki 2026 | Tester (WhatsApp, ikinci rapor) | "Listeleri paylaşamıyoruz. Davet gidiyor ama yeşil tike basınca bir şey olmuyor veya iznin yok diyor. Kırmızı çarpıyla reddetmekte sorun yok." (21 Eylül'deki raporla aynı belirti; yeni indirdiğini söylüyor) | Hangi sürümde olduğu ve tam hata mesajı henüz bilinmiyor. Olası neden: yeni doğrulanan hesapta eski kimlik belirteci (1.0.2'de düzeltildi: kabul öncesi belirteç yenileniyor) veya telefonda eski sürüm. Net hata mesajı ve ek güvenlik önlemi planlandı | 1.0.1/1.0.2 | Beklemede (inceleniyor) |
+
 ## Henüz toplanmamış / sıradaki
 - 10 Ekim 2026'dan itibaren başlayan ikinci 14 günlük kapalı testin geri bildirimleri aşağıya eklenecek.
 
