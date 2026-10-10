@@ -24,6 +24,8 @@ Backlog büyüdü, aşağıda ne gerçekten acil ne değil diye kaba bir sırala
 
 ## Bir sonraki sürüme kadar bekleyen (kod hazır, henüz deploy edilmedi)
 
+- **1.0.4+5 sürümü derlendi (11 Ekim 2026), Play Console'a YÜKLENMEYİ BEKLİYOR (1.0.3'ün incelemesi bitince yükle):** `build/app/outputs/bundle/release/app-release.aab` (59,7 MB, üretim yükleme sertifikasıyla imzalı, SHA-256 9E:43:36:02:…:93:A1:23). İçinde: liste içi menü sadeleştirmesi (28: Sırala simgesi, kısa ⋮ menüsü, seçim modu alt çubuğu, "Toplu madde ekle"), maddesiz alt başlık (20), liste açıkken ekranı açık tut anahtarı (29, Profil), alt başlık adı çipinin büyük harfle gösterilmesi. Cihazda DENENMEDİ: ekran açık tutma (29) ve boş alt başlık/seçim modu telefon düzeni; menü ve alt başlık web'de doğrulandı. Yüklenince bu satırı güncelle.
+
 
 - **Madde 29 (liste açıkken ekran sönmesin) — KOD TAMAM, 1.0.4'e girecek (11 Ekim 2026), DENENMEDİ:** Yeni `wakelock_plus` bağımlılığı (pubspec.yaml; `pubspec.lock` bilerek commit edilmedi, Windows/Mac Flutter sürümleri farklı — **Mac'te `flutter pub get` + `pod install` gerekir**). Profil ekranına "Liste açıkken ekranı açık tut" anahtarı (varsayılan KAPALI, cihaza özel, `shared_preferences`, `lib/data/keep_screen_on_provider.dart`); liste detay ekranı açıkken ekran uyumuyor, ekrandan çıkınca/anahtar kapanınca serbest bırakılıyor. Test: anahtarı aç, bir listeyi aç, telefonun ekran zaman aşımını (örn. 30 sn) bekle → ekran sönmemeli; listeden çık → normale dönmeli; anahtar kapalıyken eskisi gibi sönmeli. Not: telefonun PIN/parmak izi kilidini kapatmaz.
 
